@@ -8,6 +8,7 @@
 /// `package:auris/auris_widgets.dart`.
 library;
 
+export 'src/painters/chamfer_border.dart';
 export 'src/scheme.dart';
 export 'src/theme.dart';
 export 'src/tokens.dart';
