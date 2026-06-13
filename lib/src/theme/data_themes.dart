@@ -47,10 +47,12 @@ abstract final class AurisDataThemes {
   /// uppercase heading row, gold-tinted selected rows, and bright dividers.
   static DataTableThemeData dataTable(AurisScheme scheme) {
     return DataTableThemeData(
-      decoration: BoxDecoration(
+      decoration: ShapeDecoration(
         color: scheme.surfacePanel,
-        border: Border.all(color: scheme.borderBright),
-        borderRadius: BorderRadius.all(Radius.circular(scheme.bevel.md)),
+        shape: AurisChamferBorder(
+          cut: scheme.bevel.md,
+          side: BorderSide(color: scheme.borderBright),
+        ),
       ),
       dataRowColor: WidgetStateProperty.resolveWith<Color?>(
         (Set<WidgetState> states) {
