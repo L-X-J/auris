@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'scheme.dart';
 import 'theme/button_themes.dart';
+import 'theme/input_themes.dart';
 import 'tokens.dart';
 
 /// Factory for the Auris `ThemeData`.
@@ -15,10 +16,11 @@ import 'tokens.dart';
 /// light-background variant is anticipated (§spec:scope); [AurisTheme.dark] is
 /// reserved and throws [UnimplementedError] until it lands.
 ///
-/// This batch populates `ColorScheme`, `TextTheme`, and the button component
-/// themes; the remaining component themes are added in later batches. Elevation
-/// and shadow defaults already reflect the aesthetic: elevation is `0` and
-/// shadows are transparent, so depth reads as glow rather than drop shadow.
+/// This batch populates `ColorScheme`, `TextTheme`, the button component
+/// themes, and the input / dropdown decoration themes; the remaining component
+/// themes are added in later batches. Elevation and shadow defaults already
+/// reflect the aesthetic: elevation is `0` and shadows are transparent, so
+/// depth reads as glow rather than drop shadow.
 abstract final class AurisTheme {
   const AurisTheme._();
 
@@ -60,6 +62,9 @@ abstract final class AurisTheme {
       iconButtonTheme: AurisButtonThemes.icon(scheme),
       floatingActionButtonTheme: AurisButtonThemes.fab(scheme),
       segmentedButtonTheme: AurisButtonThemes.segmented(scheme),
+      // Input + dropdown decoration themes.
+      inputDecorationTheme: AurisInputThemes.inputDecoration(scheme),
+      dropdownMenuTheme: AurisInputThemes.dropdownMenu(scheme),
       // Carry the resolved scheme so custom widgets read the exact same values.
       extensions: <ThemeExtension<dynamic>>[scheme],
     );
