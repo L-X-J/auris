@@ -333,11 +333,20 @@ abstract final class AurisInputThemes {
       pressElevation: 0,
       side: BorderSide(color: scheme.borderBright),
       shape: AurisChamferBorder(cut: scheme.bevel.sm),
+      // Label color is state-resolved so the selected chip (solid gold fill)
+      // gets a near-black label instead of gold-on-gold. Flutter resolves a
+      // WidgetStateColor on the label style for every chip type, including
+      // FilterChip (which keeps using labelStyle when selected, unlike
+      // ChoiceChip's secondaryLabelStyle).
       labelStyle: TextStyle(
         fontFamily: AurisTokens.fontMono,
         fontSize: 12,
         letterSpacing: AurisTokens.trackingLabel,
-        color: scheme.primaryActive,
+        color: WidgetStateColor.resolveWith(
+          (Set<WidgetState> states) => states.contains(WidgetState.selected)
+              ? scheme.onPrimary
+              : scheme.primaryActive,
+        ),
       ),
       secondaryLabelStyle: TextStyle(
         fontFamily: AurisTokens.fontMono,
