@@ -399,8 +399,9 @@ class _AurisSliderThumb extends SliderComponentShape {
       width: half * 2,
       height: half * 2,
     );
+    // A small chamfer (bevelXs) — a larger cut reads as a diamond at this size.
     context.canvas.drawPath(
-      aurisChamferPath(rect, half * 0.7),
+      aurisChamferPath(rect, AurisTokens.bevelXs),
       Paint()..color = color,
     );
   }
@@ -446,14 +447,29 @@ class _AurisSliderTrack extends SliderTrackShape with BaseSliderTrackShape {
     final Color active = sliderTheme.activeTrackColor!;
     final Color inactive = sliderTheme.inactiveTrackColor!;
     final Canvas canvas = context.canvas;
+
+    // The leading filled cell (nearest the thumb) reads a touch brighter as a
+    // position cue; the rest of the filled trail is dim so it stays backgrounded
+    // and the bright handle is the clear indicator.
+    int leading = -1;
+    for (int i = 0; i < _segments; i++) {
+      final double cx = rect.left + i * (cellWidth + _gap) + cellWidth / 2;
+      if (cx <= thumbCenter.dx) {
+        leading = i;
+      }
+    }
     for (int i = 0; i < _segments; i++) {
       final double left = rect.left + i * (cellWidth + _gap);
       final Rect cell = Rect.fromLTWH(left, rect.top, cellWidth, rect.height);
-      final bool filled = cell.center.dx <= thumbCenter.dx;
-      canvas.drawPath(
-        aurisSlantPath(cell, _slant),
-        Paint()..color = filled ? active : inactive,
-      );
+      final Color color;
+      if (cell.center.dx > thumbCenter.dx) {
+        color = inactive;
+      } else if (i == leading) {
+        color = active.withValues(alpha: 0.7);
+      } else {
+        color = active.withValues(alpha: 0.4);
+      }
+      canvas.drawPath(aurisSlantPath(cell, _slant), Paint()..color = color);
     }
   }
 }
