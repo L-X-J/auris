@@ -300,8 +300,10 @@ class _SelectPopup<T> extends StatelessWidget {
           targetAnchor: Alignment.bottomLeft,
           followerAnchor: Alignment.topLeft,
           offset: const Offset(0, 6),
-          child: Align(
-            alignment: Alignment.topLeft,
+          // Match the trigger's width so the panel doesn't expand to fill the
+          // overlay and run off the right edge of the screen.
+          child: SizedBox(
+            width: link.leaderSize?.width,
             child: AurisContainer(
               cut: scheme.bevel.md,
               fill: scheme.surfacePanel,
