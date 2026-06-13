@@ -10,8 +10,8 @@ void main() {
   final ThemeData theme = AurisTheme.light();
   final AurisScheme scheme = theme.extension<AurisScheme>()!;
 
-  /// True when [shape] is a [BeveledRectangleBorder] (the chamfered geometry).
-  bool isBeveled(OutlinedBorder? shape) => shape is BeveledRectangleBorder;
+  /// True when [shape] is an [AurisChamferBorder] (the chamfered geometry).
+  bool isBeveled(OutlinedBorder? shape) => shape is AurisChamferBorder;
 
   group('button themes', () {
     test('all button component themes are populated', () {
@@ -67,7 +67,7 @@ void main() {
       );
       expect(
         theme.floatingActionButtonTheme.shape,
-        isA<BeveledRectangleBorder>(),
+        isA<AurisChamferBorder>(),
       );
     });
 
@@ -88,15 +88,15 @@ void main() {
 
     test('focused border uses the gold primary-active role', () {
       final InputBorder? focused = theme.inputDecorationTheme.focusedBorder;
-      expect(focused, isA<OutlineInputBorder>());
+      expect(focused, isA<AurisChamferInputBorder>());
       expect(focused!.borderSide.color, scheme.primaryActive);
     });
 
     test('enabled input border is beveled (chamfered)', () {
-      final OutlineInputBorder border =
-          theme.inputDecorationTheme.enabledBorder! as OutlineInputBorder;
-      // OutlineInputBorder corners derive from the scheme medium bevel.
-      expect(border.borderRadius.topLeft.x, scheme.bevel.md);
+      final AurisChamferInputBorder border =
+          theme.inputDecorationTheme.enabledBorder! as AurisChamferInputBorder;
+      // The chamfer cut derives from the scheme medium bevel.
+      expect(border.cut, scheme.bevel.md);
     });
 
     test('DropdownMenu renders on a chamfered panel surface', () {
@@ -119,7 +119,7 @@ void main() {
     });
 
     test('Checkbox has a beveled box and suppressed splash', () {
-      expect(theme.checkboxTheme.shape, isA<BeveledRectangleBorder>());
+      expect(theme.checkboxTheme.shape, isA<AurisChamferBorder>());
       expect(theme.checkboxTheme.splashRadius, 0);
     });
 
@@ -142,7 +142,7 @@ void main() {
     });
 
     test('Chip is beveled and selects with the primary role', () {
-      expect(theme.chipTheme.shape, isA<BeveledRectangleBorder>());
+      expect(theme.chipTheme.shape, isA<AurisChamferBorder>());
       expect(theme.chipTheme.selectedColor, scheme.primaryActive);
       expect(theme.chipTheme.elevation, 0);
     });

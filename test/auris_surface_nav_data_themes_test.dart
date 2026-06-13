@@ -11,8 +11,8 @@ void main() {
   final ThemeData theme = AurisTheme.light();
   final AurisScheme scheme = theme.extension<AurisScheme>()!;
 
-  /// True when [shape] is a [BeveledRectangleBorder] (the chamfered geometry).
-  bool isBeveled(ShapeBorder? shape) => shape is BeveledRectangleBorder;
+  /// True when [shape] is an [AurisChamferBorder] (the chamfered geometry).
+  bool isBeveled(ShapeBorder? shape) => shape is AurisChamferBorder;
 
   group('surface & overlay themes', () {
     test('all surface/overlay component themes are populated', () {
