@@ -4,39 +4,6 @@
 <!-- assumptions later sections depend on. Completed work leaves from -->
 <!-- the head; new work enters at the tail. -->
 
-## Material re-skin — core controls
-
-Re-skin the interactive controls an app uses most, and prove coverage in the
-showcase.
-
-### §road:button-themes
-
-Implement the button component themes (Elevated, Outlined, Text, Filled, Icon,
-FloatingActionButton, SegmentedButton) in `lib/src/theme/button_themes.dart`
-and compose them into `AurisTheme.light()`. §spec:theme-layer.
-
-### §road:input-themes
-
-Implement `InputDecorationTheme` and `DropdownMenuThemeData` in
-`lib/src/theme/input_themes.dart`. §spec:theme-layer.
-
-### §road:selection-control-themes
-
-Implement the Checkbox, Radio, Switch, Slider, and Chip themes in
-`lib/src/theme/input_themes.dart`. §spec:theme-layer.
-
-### §road:core-controls-showcase
-
-Add showcase sections for buttons, inputs, selection controls, and sliders to
-`example/lib/main.dart`. §spec:showcase. Depends on §road:button-themes,
-§road:input-themes, §road:selection-control-themes.
-
-**Verify:** In the running example, scroll to the Buttons, Inputs, and
-Selection sections. Every button variant (including disabled), text field
-(normal and error), dropdown, checkbox, radio, switch, slider, and chip
-renders fully themed — none falls back to default Material. Ripples are
-replaced by amber hover/focus overlays.
-
 ## Material re-skin — surfaces, navigation & data
 
 Re-skin the remaining component families: containers/overlays, navigation
