@@ -257,9 +257,13 @@ class _Segment extends StatelessWidget {
         ? dimColor
         : (leading ? fillColor : fillColor.withValues(alpha: 0.72));
 
-    Widget cell = ClipPath(
-      clipper: const SlantClipper(_slant),
-      child: ColoredBox(color: color),
+    // Fill the slant via ShapeDecoration (anti-aliased) rather than clipping a
+    // ColoredBox, which leaves jagged diagonal edges.
+    Widget cell = DecoratedBox(
+      decoration: ShapeDecoration(
+        color: color,
+        shape: const AurisSlantBorder(slant: _slant),
+      ),
     );
     // The glow rides on an (unclipped) box so it can spill past the cell.
     if (glow.isNotEmpty) {

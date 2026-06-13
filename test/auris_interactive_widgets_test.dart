@@ -122,11 +122,11 @@ void main() {
       final Color full = scheme.primaryActive;
       final Color dimmed = scheme.primaryActive.withValues(alpha: 0.72);
       return tester
-          .widgetList<ClipPath>(find.byType(ClipPath))
-          .where((ClipPath c) => c.clipper is SlantClipper)
-          .map((ClipPath c) => c.child)
-          .whereType<ColoredBox>()
-          .where((ColoredBox b) => b.color == full || b.color == dimmed)
+          .widgetList<DecoratedBox>(find.byType(DecoratedBox))
+          .map((DecoratedBox b) => b.decoration)
+          .whereType<ShapeDecoration>()
+          .where((ShapeDecoration d) => d.shape is AurisSlantBorder)
+          .where((ShapeDecoration d) => d.color == full || d.color == dimmed)
           .length;
     }
 

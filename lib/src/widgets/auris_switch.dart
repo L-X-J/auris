@@ -255,8 +255,11 @@ class _AurisSwitchState extends State<AurisSwitch>
             child: SizedBox(
               width: _trackWidth,
               height: _trackHeight,
+              // antiAliasWithSaveLayer gives the diagonal slant a smooth edge;
+              // plain antiAlias clipping leaves jaggies on diagonals.
               child: ClipPath(
                 clipper: const SlantClipper(trackSlant),
+                clipBehavior: Clip.antiAliasWithSaveLayer,
                 child: DecoratedBox(
                   decoration: ShapeDecoration(
                     color: trackFill,
@@ -270,18 +273,18 @@ class _AurisSwitchState extends State<AurisSwitch>
                       Positioned(
                         left: thumbX,
                         top: _thumbInset,
-                        child: ClipPath(
-                          clipper: const SlantClipper(thumbSlant),
-                          child: Container(
-                            width: thumbSize,
-                            height: thumbSize,
-                            decoration: ShapeDecoration(
-                              color: thumbColor,
-                              shape: const AurisSlantBorder(slant: thumbSlant),
-                              shadows: widget.value && t > 0.5
-                                  ? scheme.depthSubtle.glow
-                                  : null,
-                            ),
+                        // The ShapeDecoration fills the slant anti-aliased;
+                        // no ClipPath needed (and a clip would re-introduce
+                        // the jagged diagonal).
+                        child: Container(
+                          width: thumbSize,
+                          height: thumbSize,
+                          decoration: ShapeDecoration(
+                            color: thumbColor,
+                            shape: const AurisSlantBorder(slant: thumbSlant),
+                            shadows: widget.value && t > 0.5
+                                ? scheme.depthSubtle.glow
+                                : null,
                           ),
                         ),
                       ),
