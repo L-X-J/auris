@@ -151,6 +151,10 @@ class _AurisProgressBarState extends State<AurisProgressBar>
         return SizedBox(
           height: widget.height,
           child: Row(
+            // Stretch so each segment fills the bar height. Without this the
+            // childless segment boxes get a loose height constraint and
+            // collapse to zero, leaving only the leading glow as a faint blur.
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               for (int i = 0; i < widget.segments; i++) ...<Widget>[
                 if (i > 0) SizedBox(width: widget.spacing),
