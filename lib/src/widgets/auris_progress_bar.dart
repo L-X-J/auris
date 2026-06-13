@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../painters/chamfer_border.dart';
-import '../painters/chamfer_clipper.dart';
+import '../painters/slant_clipper.dart';
 import '../scheme.dart';
+import '../tokens.dart';
 
 /// The semantic intent of an [AurisProgressBar], mapped to a scheme role color
 /// and its depth-by-intent glow.
@@ -20,25 +20,30 @@ enum AurisProgressVariant {
   success,
 }
 
-/// A segmented meter: `segments` chamfered cells, of which the leading
-/// `value`-fraction are filled in the variant color, the rest dim. The leading
-/// filled segment carries the variant's depth glow so the "wavefront" reads as
-/// luminous (§spec:custom-widgets — the preferred linear-progress replacement
-/// Material's `LinearProgressIndicator` cannot segment).
+/// A segmented meter: `segments` parallelogram-slanted cells, of which the
+/// leading `value`-fraction are filled in the variant color. Trailing filled
+/// cells sit slightly dimmed and the leading cell is full-strength with the
+/// variant's depth glow, so the "wavefront" reads as luminous
+/// (§spec:custom-widgets — the preferred linear-progress replacement Material's
+/// `LinearProgressIndicator` cannot segment).
 ///
-/// Each cell is a true chamfered box ([ChamferClipper] + [AurisChamferBorder]),
-/// not a rounded Material bar. All colors and the leading-segment glow resolve
-/// from the [AurisScheme]; nothing is read from raw tokens.
+/// The slanted cell geometry ([SlantClipper]) is the HUD "data bar" motif,
+/// distinct from the corner chamfer used on panels. An optional [label] (shown
+/// left) and [valueLabel] (shown right, e.g. `'68 / 100'`) form a header row
+/// above the bar. All colors and the leading-cell glow resolve from the
+/// [AurisScheme]; nothing is read from raw tokens.
 ///
-/// The default constructor renders the value immediately. [AurisProgressBar.animated]
-/// tweens segment fills when [value] changes over the scheme's normal duration,
-/// honoring reduced motion by snapping to the end state
-/// (§spec:motion-performance).
+/// The default constructor renders the value immediately.
+/// [AurisProgressBar.animated] tweens segment fills when [value] changes over
+/// the scheme's normal duration, honoring reduced motion by snapping to the end
+/// state (§spec:motion-performance).
 class AurisProgressBar extends StatefulWidget {
   /// Creates a segmented progress meter that renders [value] immediately.
   const AurisProgressBar({
     super.key,
     required this.value,
+    this.label,
+    this.valueLabel,
     this.segments = 20,
     this.variant = AurisProgressVariant.primary,
     this.height = 10,
@@ -51,6 +56,8 @@ class AurisProgressBar extends StatefulWidget {
   const AurisProgressBar.animated({
     super.key,
     required this.value,
+    this.label,
+    this.valueLabel,
     this.segments = 20,
     this.variant = AurisProgressVariant.primary,
     this.height = 10,
@@ -62,7 +69,14 @@ class AurisProgressBar extends StatefulWidget {
   /// The fill fraction in `0..1`.
   final double value;
 
-  /// The number of chamfered cells.
+  /// Optional label shown at the leading end of the header row.
+  final String? label;
+
+  /// Optional value readout shown at the trailing end of the header row
+  /// (e.g. `'68 / 100'`).
+  final String? valueLabel;
+
+  /// The number of slanted cells.
   final int segments;
 
   /// The semantic color of the filled cells.
@@ -141,7 +155,7 @@ class _AurisProgressBarState extends State<AurisProgressBar>
     final AurisScheme scheme = Theme.of(context).extension<AurisScheme>()!;
     final ({Color filled, AurisDepth depth}) v = _resolve(scheme);
 
-    return AnimatedBuilder(
+    final Widget bar = AnimatedBuilder(
       animation: _value,
       builder: (BuildContext context, _) {
         // The count of fully filled segments and which one leads (glows).
@@ -163,10 +177,7 @@ class _AurisProgressBarState extends State<AurisProgressBar>
                     filled: i < filledCount,
                     leading: i == leadingIndex,
                     fillColor: v.filled,
-                    dimColor: scheme.surfaceInset,
-                    borderColor: i < filledCount
-                        ? v.filled.withValues(alpha: 0.6)
-                        : scheme.borderResting,
+                    dimColor: scheme.borderBright,
                     glow: i == leadingIndex ? v.depth.glow : const <BoxShadow>[],
                   ),
                 ),
@@ -176,17 +187,57 @@ class _AurisProgressBarState extends State<AurisProgressBar>
         );
       },
     );
+
+    if (widget.label == null && widget.valueLabel == null) {
+      return bar;
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Padding(
+          padding: const EdgeInsets.only(bottom: 6),
+          child: Row(
+            children: <Widget>[
+              if (widget.label != null)
+                Expanded(
+                  child: Text(
+                    widget.label!.toUpperCase(),
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontFamily: AurisTokens.fontMono,
+                      fontSize: 11,
+                      letterSpacing: AurisTokens.trackingLabel,
+                      color: scheme.primaryDim,
+                    ),
+                  ),
+                ),
+              if (widget.valueLabel != null)
+                Text(
+                  widget.valueLabel!,
+                  style: TextStyle(
+                    fontFamily: AurisTokens.fontMono,
+                    fontSize: 11,
+                    letterSpacing: AurisTokens.trackingLabel,
+                    color: scheme.textDim,
+                  ),
+                ),
+            ],
+          ),
+        ),
+        bar,
+      ],
+    );
   }
 }
 
-/// A single chamfered cell of the meter.
+/// A single slanted cell of the meter.
 class _Segment extends StatelessWidget {
   const _Segment({
     required this.filled,
     required this.leading,
     required this.fillColor,
     required this.dimColor,
-    required this.borderColor,
     required this.glow,
   });
 
@@ -194,32 +245,29 @@ class _Segment extends StatelessWidget {
   final bool leading;
   final Color fillColor;
   final Color dimColor;
-  final Color borderColor;
   final List<BoxShadow> glow;
 
-  static const double _cut = 3;
+  static const double _slant = 3;
 
   @override
   Widget build(BuildContext context) {
-    // The glow rides on an outer (unclipped) shape so it can spill past the
-    // cell; the fill + border are clipped to the chamfer inside it.
-    return DecoratedBox(
-      decoration: ShapeDecoration(
-        shape: const AurisChamferBorder(cut: _cut),
-        shadows: glow.isEmpty ? null : glow,
-      ),
-      child: ClipPath(
-        clipper: const ChamferClipper(cut: _cut),
-        child: DecoratedBox(
-          decoration: ShapeDecoration(
-            color: filled ? fillColor : dimColor.withValues(alpha: 0.6),
-            shape: AurisChamferBorder(
-              cut: _cut,
-              side: BorderSide(color: borderColor),
-            ),
-          ),
-        ),
-      ),
+    // Trailing filled cells are dimmed so the leading cell reads as the bright
+    // wavefront; unfilled cells use the dim border color.
+    final Color color = !filled
+        ? dimColor
+        : (leading ? fillColor : fillColor.withValues(alpha: 0.72));
+
+    Widget cell = ClipPath(
+      clipper: const SlantClipper(_slant),
+      child: ColoredBox(color: color),
     );
+    // The glow rides on an (unclipped) box so it can spill past the cell.
+    if (glow.isNotEmpty) {
+      cell = DecoratedBox(
+        decoration: BoxDecoration(boxShadow: glow),
+        child: cell,
+      );
+    }
+    return cell;
   }
 }

@@ -846,22 +846,23 @@ class _ShowcaseScreenState extends State<_ShowcaseScreen> {
 
                 // ---- PROGRESS -----------------------------------------------
                 const _SectionHeader('PROGRESS'),
-                Text('SHIELD INTEGRITY', style: text.labelMedium),
-                const SizedBox(height: 8),
-                AurisProgressBar.animated(value: _progress),
+                AurisProgressBar.animated(
+                  value: _progress,
+                  label: 'SHIELD INTEGRITY',
+                  valueLabel: '${(_progress * 100).round()} / 100',
+                ),
                 const SizedBox(height: 16),
-                Text('COOLANT (SECONDARY)', style: text.labelMedium),
-                const SizedBox(height: 8),
                 const AurisProgressBar(
                   value: 0.7,
+                  label: 'COOLANT (SECONDARY)',
+                  valueLabel: '70 / 100',
                   variant: AurisProgressVariant.secondary,
                 ),
                 const SizedBox(height: 16),
-                Text('CORE TEMP (CRITICAL)', style: text.labelMedium),
-                const SizedBox(height: 8),
                 const AurisProgressBar(
                   value: 0.92,
-                  segments: 16,
+                  label: 'CORE TEMP (CRITICAL)',
+                  valueLabel: '92 / 100',
                   variant: AurisProgressVariant.danger,
                 ),
                 const SizedBox(height: 12),

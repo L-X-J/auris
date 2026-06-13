@@ -115,6 +115,21 @@ void main() {
   });
 
   group('AurisProgressBar', () {
+    // A filled cell is a slant-clipped ColoredBox carrying the variant color
+    // (the leading cell at full strength, trailing filled cells dimmed);
+    // unfilled cells use the dim border color.
+    int filledSegments(WidgetTester tester) {
+      final Color full = scheme.primaryActive;
+      final Color dimmed = scheme.primaryActive.withValues(alpha: 0.72);
+      return tester
+          .widgetList<ClipPath>(find.byType(ClipPath))
+          .where((ClipPath c) => c.clipper is SlantClipper)
+          .map((ClipPath c) => c.child)
+          .whereType<ColoredBox>()
+          .where((ColoredBox b) => b.color == full || b.color == dimmed)
+          .length;
+    }
+
     testWidgets('fills the correct number of segments', (
       WidgetTester tester,
     ) async {
@@ -126,17 +141,8 @@ void main() {
           ),
         ),
       );
-      // 10 segments -> 10 chamfered cells (each an outer + inner DecoratedBox).
-      final Iterable<ShapeDecoration> shapes = tester
-          .widgetList<DecoratedBox>(find.byType(DecoratedBox))
-          .map((DecoratedBox b) => b.decoration)
-          .whereType<ShapeDecoration>()
-          .where((ShapeDecoration d) => d.shape is AurisChamferBorder);
-      // The filled cells carry the variant color as their fill; count them.
-      final int filled = shapes
-          .where((ShapeDecoration d) => d.color == scheme.primaryActive)
-          .length;
-      expect(filled, 5);
+      // value 0.5 of 10 segments -> 5 filled cells.
+      expect(filledSegments(tester), 5);
     });
 
     testWidgets('value 1.0 fills every segment', (WidgetTester tester) async {
@@ -148,13 +154,7 @@ void main() {
           ),
         ),
       );
-      final int filled = tester
-          .widgetList<DecoratedBox>(find.byType(DecoratedBox))
-          .map((DecoratedBox b) => b.decoration)
-          .whereType<ShapeDecoration>()
-          .where((ShapeDecoration d) => d.color == scheme.primaryActive)
-          .length;
-      expect(filled, 8);
+      expect(filledSegments(tester), 8);
     });
 
     testWidgets('.animated tweens between values over time', (
@@ -189,13 +189,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 50));
       expect(tester.hasRunningAnimations, isTrue);
       await tester.pumpAndSettle();
-      final int filled = tester
-          .widgetList<DecoratedBox>(find.byType(DecoratedBox))
-          .map((DecoratedBox b) => b.decoration)
-          .whereType<ShapeDecoration>()
-          .where((ShapeDecoration d) => d.color == scheme.primaryActive)
-          .length;
-      expect(filled, 9);
+      expect(filledSegments(tester), 9);
     });
 
     testWidgets(
@@ -231,13 +225,7 @@ void main() {
         await tester.pump();
         // No controller is running; the bar is already at its end state.
         expect(tester.hasRunningAnimations, isFalse);
-        final int filled = tester
-            .widgetList<DecoratedBox>(find.byType(DecoratedBox))
-            .map((DecoratedBox b) => b.decoration)
-            .whereType<ShapeDecoration>()
-            .where((ShapeDecoration d) => d.color == scheme.primaryActive)
-            .length;
-        expect(filled, 9);
+        expect(filledSegments(tester), 9);
       },
     );
   });
