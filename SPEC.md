@@ -46,6 +46,14 @@ the widget library covers the rest.
 rejected: it would not satisfy the "instant drop-in re-skin" success criterion
 and would force adopters to replace every existing Material widget.
 
+**Shared foundation.** Both layers read from one resolved design scheme rather
+than from raw constants independently (§spec:scheme). The scheme is derived
+once — from primitive tokens plus any customization overrides plus a target
+brightness — and carried on `ThemeData` as a `ThemeExtension`. This single
+resolution point is what lets customization (§spec:customization) and the
+anticipated light variant (§spec:scope) re-skin the entire kit, Material
+components and custom widgets alike, through one mechanism instead of two.
+
 **Naming note.** `AurisTheme.light()` is the default and only implemented
 constructor; "light" is a historical misnomer — Auris is always dark in
 v0.1.0. A genuine light-background variant is an anticipated future requirement
@@ -107,30 +115,79 @@ rest and clips child content at the corners.
 
 **Elevation and glow.** Material elevation shadows are replaced by amber glow,
 because drop shadows read as flat/soft and conflict with the hard-edged,
-luminous aesthetic. Glow levels are `BoxShadow` lists: `glowNone`,
+luminous aesthetic. The primitive glow values are `BoxShadow` lists: `glowNone`,
 `glowSubtle`, `glowActive` (two stacked amber blurs), plus `glowDanger` and
 `glowSlate` variants. `ColorScheme.shadow` is `transparent` and component
-`elevation` is `0` everywhere; depth is communicated by glow, not shadow.
+`elevation` is `0` everywhere; depth is communicated by glow, not shadow. These
+are primitives only — consumers never reference them directly but request depth
+*by intent* through the resolved scheme (§spec:scheme), so a future brightness
+variant can resolve the same intent to a non-glow cue.
 
 **Motion.** `durationFast 120ms`, `durationNormal 200ms`, `durationSlow 350ms`;
 curves `curveDefault` (easeInOut), `curveEnter` (easeOut), `curveExit`
 (easeIn).
 
-**Rationale.** Centralizing every value as a `const` token is what makes the
-"no raw literals" quality bar enforceable and makes the customization layer
-(§spec:customization) tractable — there is exactly one place the look is
-defined.
+**Rationale.** These `const` primitives are the lowest tier of a two-tier
+model: raw values live here (and only here — the "no raw literals" bar), while
+the *semantic* layer that consumers actually read — surfaces, text roles, the
+primary ramp, borders, depth-by-intent — is the resolved scheme built from
+these primitives (§spec:scheme). Keeping primitives separate from resolved
+roles is what lets customization overrides and brightness variants re-resolve
+the roles without touching this primitive layer or any call site.
 
-**Anticipated change — brightness variants.** A light-background variant (and a
-higher-contrast variant) is an anticipated future requirement (§spec:scope).
-The token layer is therefore expected to express the palette in semantic roles
-(surface, on-surface, primary, border, …) that a variant can re-resolve, rather
-than as a single hard-coded set that only reads correctly on near-black. v0.1.0
-ships only the dark values, but the role structure is chosen so a future
-variant is an additive resolution of the same roles, not a rewrite of every
-consumer. The decorative-only status of dim tokens (§spec:accessibility) is part
-of this: roles carry intent, so a light variant can re-pick values per role
-without auditing every call site.
+---
+
+## Resolved scheme and theme assembly §spec:scheme
+
+*Status: not started*
+
+Cites: §req:quality-attributes, §req:success-criteria, §req:constraints
+
+**Problem.** Two distinct needs — letting an adopter recolor/reshape the kit
+without forking (§spec:customization) and adding a light variant later without a
+rewrite (§spec:scope) — are the same underlying operation: re-deriving the look
+from semantic intent. If the theme layer and the custom widgets each read raw
+constants independently, that operation has to be implemented twice and kept in
+sync, and a variant means editing every call site.
+
+**Observable behavior.** A single resolved value object, `AurisScheme`, carries
+every design value consumers read, expressed as **semantic roles** rather than
+literal constants — surfaces (page/panel/inset), text roles (bright/mid/dim),
+the primary ramp (dim/active/highlight), secondary accent, borders
+(resting/bright), semantic danger/success, the bevel scale, and **depth by
+intent** (resting/subtle/active/danger/secondary). `AurisScheme` is attached to
+`ThemeData` as a `ThemeExtension`. Every Auris custom widget reads its values
+from `Theme.of(context).extension<AurisScheme>()`, and the Material component
+themes (§spec:theme-layer) are derived from the same resolved scheme. Because it
+is a `ThemeExtension`, an adopter can wrap a subtree in a `Theme` with a
+different scheme and that subtree re-skins independently.
+
+**The resolution seam.** The scheme is produced by one resolver that takes a
+target `Brightness`, an optional accent override, and optional bevel/glow
+scales, and returns a fully populated `AurisScheme` built from the primitive
+tokens (§spec:design-tokens). v0.1.0 implements only the dark resolution;
+requesting any other brightness is unsupported for now. The seam — brightness
+as an explicit input to a role-producing resolver — exists in v0.1.0 even
+though only one branch is populated, so adding the light variant is adding a
+branch, not restructuring consumers.
+
+**Depth as a role.** Consumers request depth by intent (e.g. "active
+elevation"), and the scheme resolves that intent to a concrete cue. In the dark
+variant the cue is amber glow (the `glow*` primitives); the resolved depth is
+defined richly enough to express a non-glow cue (such as a border or inset
+emphasis) so a light variant — where amber glow on a pale surface is nearly
+invisible — can substitute an appropriate cue without changing any widget.
+
+**Rationale and tradeoffs.** A `ThemeExtension` was chosen over a bespoke
+`InheritedWidget` wrapper because it rides on the `ThemeData` the adopter
+already supplies to `MaterialApp`, preserving the "instant drop-in" criterion
+(no second wrapper) and giving per-subtree scoping for free. Static
+`AurisTokens` access was rejected as the consumer path because it cannot vary by
+context, which would defeat both customization and brightness variants. The cost
+accepted is one layer of indirection (widgets resolve from context rather than
+referencing constants) and the discipline that no consumer reads a primitive
+directly. `AurisTokens` remains available for adopters who genuinely want raw
+values.
 
 ---
 
@@ -146,7 +203,12 @@ aesthetic with no further work. No standard widget renders with default
 Material styling — this is the kit's top success criterion and its primary
 defense against the leading abandonment risk ("widgets look broken/unstyled").
 
-`AurisTheme.light()` returns a fully specified `ThemeData` in which every
+`AurisTheme.light()` returns a fully specified `ThemeData` whose `ColorScheme`
+and every component theme are derived from the resolved `AurisScheme`
+(§spec:scheme), which is also attached to the returned `ThemeData` as a
+`ThemeExtension` so custom widgets share the exact same resolved values. Any
+customization overrides or brightness target flow in through that one scheme,
+so they reach the Material components and the custom widgets identically. Every
 component theme is populated; none is left at its Material 3 default. The
 populated component themes are:
 
@@ -220,8 +282,11 @@ visible keyboard focus (§spec:accessibility).
 cannot be produced through `ThemeData` — segmented fills, custom-clipped
 tracks, decorative painters, and auto-scrolling log behavior all require widget
 code. Widget constructors are `const` wherever possible. Exact dimensions and
-padding are owned by the implementation; the design-defining values (bevel
-sizes, variant colors, glow levels) come from `AurisTokens`.
+padding are owned by the implementation; the design-defining values (colors,
+bevel scale, depth-by-intent) are read from the resolved `AurisScheme` via
+`Theme.of(context).extension<AurisScheme>()` (§spec:scheme), not from primitive
+constants — this is what makes the widgets honor customization overrides and
+future brightness variants without per-widget changes.
 
 ---
 
@@ -237,25 +302,26 @@ fixed `const` palette forces adopters with brand needs to fork the package.
 **Observable behavior.** An adopter can change the **accent color**, **corner
 bevel scale**, and **glow intensity** and see the change propagate through both
 the theme layer and the custom widgets, without copying or editing package
-source. `AurisTheme.light()` accepts these overrides, and the custom widgets
-resolve the same values from the active theme/token set rather than from
-hard-wired constants, so a single override point re-skins the whole kit.
+source. `AurisTheme.light()` accepts these overrides; because both layers read
+the single resolved `AurisScheme` (§spec:scheme), one override point re-skins
+the whole kit.
 
-**Design.** A resolved token set (derived from `AurisTokens` defaults with the
-caller's overrides applied) drives both layers. The accent override recolors
-the gold/amber/bright primary ramp; the bevel override scales the
-`bevelSm…bevelXl` family; the glow override scales the `glowSubtle`/`glowActive`
-opacity/blur. The exact API surface (named parameters vs. a config object) is
-an implementation choice, constrained to: overrides are optional, defaults
-reproduce the canonical look exactly, and `const` construction remains possible
-when no override is supplied.
+**Design.** The overrides are inputs to the scheme resolver (§spec:scheme), the
+same resolver whose other input is target brightness — customization and
+brightness are orthogonal knobs on one resolution, not two mechanisms. The
+accent override recolors the primary ramp; the bevel scale multiplies the bevel
+role; the glow scale multiplies the resolved depth intensity. The exact API
+surface (named parameters vs. a config object) is an implementation choice,
+constrained to: overrides are optional, defaults reproduce the canonical look
+exactly, and an adopter who supplies no overrides pays no resolution cost beyond
+the default scheme.
 
 **Rationale and boundary.** Scope is deliberately limited to accent, bevel, and
 glow — the three knobs that cover the common brand-fit case — rather than full
-per-token theming, which would reintroduce the complexity the kit exists to
-hide. Adopters needing deeper changes still have direct `AurisTokens` access.
-The cool secondary (slate) accent is not yet a customization knob; this is a
-conscious v0.1.0 boundary.
+per-role theming, which would reintroduce the complexity the kit exists to
+hide. Adopters needing deeper changes can construct a custom `AurisScheme`
+directly. The cool secondary (slate) accent is not yet a customization knob;
+this is a conscious v0.1.0 boundary.
 
 ---
 
@@ -370,11 +436,12 @@ Cites: §req:constraints, §req:priorities
 Deferred beyond v0.1.0, by deliberate decision:
 
 - A light-background theme variant (and a higher-contrast variant). Deferred,
-  but **anticipated** rather than speculative: the token role structure
-  (§spec:design-tokens) is chosen now so the variant can be added as an
-  additive re-resolution of semantic roles without restructuring consumers.
-  `AurisTheme.dark()` is reserved and unimplemented; the `light()`/`dark()`
-  naming is revisited when this variant lands (§spec:overview).
+  but **anticipated** rather than speculative: the resolved-scheme architecture
+  and its brightness seam (§spec:scheme) are built now so the variant is an
+  additive resolver branch — including a non-glow depth cue — rather than a
+  restructuring of consumers. `AurisTheme.dark()` is reserved and unimplemented;
+  the `light()`/`dark()` naming is revisited when this variant lands
+  (§spec:overview).
 - Actual pub.dev publication (the package is publication-*ready*, not
   published).
 - Localization / RTL support.
