@@ -11,5 +11,7 @@
 /// for convenience.
 library;
 
+export 'src/painters/chamfer_clipper.dart';
 export 'src/scheme.dart';
 export 'src/tokens.dart';
+export 'src/widgets/auris_container.dart';
