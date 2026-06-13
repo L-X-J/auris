@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:auris/auris.dart';
 import 'package:auris/auris_widgets.dart';
 import 'package:flutter/material.dart';
@@ -38,6 +40,10 @@ class _ShowcaseScreenState extends State<_ShowcaseScreen> {
   int _radio = 0;
   bool _switch = true;
   bool _switchOff = false;
+  bool _aurisSwitch = true;
+  bool _aurisSwitchAlt = false;
+  double _progress = 0.45;
+  String? _aurisSelect = 'beta';
   double _slider = 0.4;
   double _sliderStepped = 30;
   final Set<String> _chips = <String>{'CORE'};
@@ -46,6 +52,50 @@ class _ShowcaseScreenState extends State<_ShowcaseScreen> {
   int _navIndex = 0;
   int _step = 1;
   bool _showError = true;
+
+  // Live-appending terminal: a Timer pushes a new log line periodically.
+  final List<AurisTerminalLine> _log = <AurisTerminalLine>[
+    const AurisTerminalLine('> boot sequence initiated', type: AurisTerminalLineType.augment),
+    const AurisTerminalLine('  loading core modules ... ok', type: AurisTerminalLineType.ok),
+  ];
+  Timer? _logTimer;
+  int _logTick = 0;
+
+  static const List<AurisTerminalLine> _logSamples = <AurisTerminalLine>[
+    AurisTerminalLine('  diagnostic pass complete', type: AurisTerminalLineType.ok),
+    AurisTerminalLine('  telemetry uplink nominal'),
+    AurisTerminalLine('! thermal margin low', type: AurisTerminalLineType.warning),
+    AurisTerminalLine('  augment graft synced', type: AurisTerminalLineType.augment),
+    AurisTerminalLine('x packet checksum mismatch', type: AurisTerminalLineType.error),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _logTimer = Timer.periodic(const Duration(seconds: 2), (Timer _) {
+      setState(() {
+        final AurisTerminalLine sample =
+            _logSamples[_logTick % _logSamples.length];
+        _log.add(
+          AurisTerminalLine(
+            '${sample.text} [${_logTick.toString().padLeft(3, '0')}]',
+            type: sample.type,
+          ),
+        );
+        _logTick++;
+        // Bound the buffer so the demo does not grow without limit.
+        if (_log.length > 40) {
+          _log.removeRange(0, _log.length - 40);
+        }
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _logTimer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -754,6 +804,99 @@ class _ShowcaseScreenState extends State<_ShowcaseScreen> {
                         child: Text('LOCK', style: text.bodyMedium),
                       ),
                     ),
+                  ],
+                ),
+
+                // ---- SWITCHES -----------------------------------------------
+                const _SectionHeader('SWITCHES'),
+                AurisSwitch(
+                  value: _aurisSwitch,
+                  label: 'Primary reactor',
+                  statusLabels: const ('OFFLINE', 'ONLINE'),
+                  onChanged: (bool v) => setState(() => _aurisSwitch = v),
+                ),
+                const SizedBox(height: 16),
+                AurisSwitch(
+                  value: _aurisSwitchAlt,
+                  label: 'Auto-stabilizer',
+                  statusLabels: const ('MANUAL', 'AUTO'),
+                  onChanged: (bool v) => setState(() => _aurisSwitchAlt = v),
+                ),
+                const SizedBox(height: 16),
+                const AurisSwitch(
+                  value: true,
+                  label: 'Locked override',
+                  statusLabels: ('OFF', 'ON'),
+                  onChanged: null,
+                ),
+
+                // ---- PROGRESS -----------------------------------------------
+                const _SectionHeader('PROGRESS'),
+                Text('SHIELD INTEGRITY', style: text.labelMedium),
+                const SizedBox(height: 8),
+                AurisProgressBar.animated(value: _progress),
+                const SizedBox(height: 16),
+                Text('COOLANT (SECONDARY)', style: text.labelMedium),
+                const SizedBox(height: 8),
+                const AurisProgressBar(
+                  value: 0.7,
+                  variant: AurisProgressVariant.secondary,
+                ),
+                const SizedBox(height: 16),
+                Text('CORE TEMP (CRITICAL)', style: text.labelMedium),
+                const SizedBox(height: 8),
+                const AurisProgressBar(
+                  value: 0.92,
+                  segments: 16,
+                  variant: AurisProgressVariant.danger,
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: Slider(
+                        value: _progress,
+                        onChanged: (double v) =>
+                            setState(() => _progress = v),
+                      ),
+                    ),
+                  ],
+                ),
+
+                // ---- TERMINAL -----------------------------------------------
+                const _SectionHeader('TERMINAL'),
+                AurisTerminal(
+                  title: 'SYSTEM LOG',
+                  code: 'LIVE',
+                  lines: _log,
+                ),
+
+                // ---- SELECT -------------------------------------------------
+                const _SectionHeader('SELECT'),
+                AurisSelect<String>(
+                  value: _aurisSelect,
+                  placeholder: 'CHOOSE CHANNEL',
+                  options: const <AurisSelectOption<String>>[
+                    AurisSelectOption<String>(value: 'alpha', label: 'Alpha'),
+                    AurisSelectOption<String>(value: 'beta', label: 'Beta'),
+                    AurisSelectOption<String>(value: 'gamma', label: 'Gamma'),
+                    AurisSelectOption<String>(value: 'delta', label: 'Delta'),
+                  ],
+                  onChanged: (String v) => setState(() => _aurisSelect = v),
+                ),
+
+                // ---- STEP INDICATOR -----------------------------------------
+                const _SectionHeader('STEP INDICATOR'),
+                const Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: <Widget>[
+                    AurisStepIndicator(
+                      step: 1,
+                      state: AurisStepState.complete,
+                    ),
+                    AurisStepIndicator(step: 2, state: AurisStepState.active),
+                    AurisStepIndicator(step: 3, state: AurisStepState.inactive),
+                    AurisStepIndicator(step: 4, state: AurisStepState.error),
                   ],
                 ),
                 const SizedBox(height: 24),
