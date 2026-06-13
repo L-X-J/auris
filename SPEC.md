@@ -36,9 +36,9 @@ targeting-reticle ornaments — do not exist in Material at all.
    terminal log, hex/bracket ornaments, stat tiles).
 
 **Rationale.** The two-layer split exists because Material's theming reaches
-roughly 60% of the desired geometry through `BeveledRectangleBorder` on
-component shapes, but cannot produce segmented fills, custom-clipped tracks,
-or decorative painters. Rather than ship only custom widgets (forcing adopters
+roughly 60% of the desired geometry by setting a custom chamfered border
+(`AurisChamferBorder`) on component shape themes, but cannot produce segmented
+fills, custom-clipped tracks, or decorative painters. Rather than ship only custom widgets (forcing adopters
 to rewrite their UI), the theme layer makes the common case zero-effort and
 the widget library covers the rest.
 
@@ -107,11 +107,18 @@ Material `TextTheme` role to a family/size/weight/spacing/color, with uppercase
 transforms on display, headline-large, and all label roles. Font family names
 are tokens (`fontDisplay`, `fontBody`, `fontMono`), never inline strings.
 
-**Shape.** Chamfered (45°) corners are the signature geometry. Bevel sizes:
-`bevelSm 6`, `bevelMd 10` (component default), `bevelLg 14`, `bevelXl 20`
-(panels/dialogs). `BeveledRectangleBorder` covers most Material components; a
-`ChamferClipper` (`CustomClipper<Path>` parameterized by corner cut) covers the
-rest and clips child content at the corners.
+**Shape.** An **asymmetric** chamfer is the signature geometry: the **top-left
+and bottom-right corners are cut at 45°, while the top-right and bottom-left
+stay square** — the notched-panel silhouette. Cut sizes: `bevelSm 6`,
+`bevelMd 10` (component default), `bevelLg 14`, `bevelXl 20` (panels/dialogs).
+Flutter's `BeveledRectangleBorder` cannot express this — it bevels all four
+corners equally — so the corner geometry is owned by a single custom
+`AurisChamferBorder` (an `OutlinedBorder`) applied to every shaped component,
+with a matching `ChamferClipper` (`CustomClipper<Path>`) clipping child content
+to the same two corners. The corner rule lives in exactly one place
+deliberately: which corners are cut (and the cut size) is a single edit, not a
+sweep across every theme. The two-corner cut also makes the resting and
+hover/focus border feel directional, reinforcing the HUD aesthetic.
 
 **Elevation and glow.** Material elevation shadows are replaced by amber glow,
 because drop shadows read as flat/soft and conflict with the hard-edged,
@@ -222,8 +229,11 @@ populated component themes are:
 
 **Signature treatments applied across all components:**
 
-- **Shape:** `BeveledRectangleBorder` at the appropriate bevel size on every
-  shaped surface (buttons, inputs, cards, menus, indicators, nav indicators).
+- **Shape:** the custom `AurisChamferBorder` (top-left + bottom-right cut, the
+  other two corners square) at the appropriate cut size on every shaped surface
+  (buttons, inputs, cards, menus, indicators, nav indicators). Text fields,
+  whose border is an `InputBorder` rather than a `ShapeBorder`, use a matching
+  chamfered `InputBorder` so they share the silhouette.
 - **Elevation:** `0` at all states; `surfaceTintColor` transparent; depth via
   glow `decoration`, not Material elevation/shadow.
 - **Ripple:** suppressed (`splashRadius: 0`) on toggles and replaced with an
@@ -235,9 +245,10 @@ populated component themes are:
 - **Typography:** uppercase, letter-spaced display/label type; monospace for
   data-bearing surfaces (labels, data tables, tooltips, value indicators).
 
-**Rationale and known limits.** `ThemeData` + `BeveledRectangleBorder` reaches
-most components but has gaps Flutter does not expose: the `Switch` track cannot
-be chamfered, and the linear `ProgressIndicator` cannot be segmented. Where a
+**Rationale and known limits.** `ThemeData` + a custom `OutlinedBorder`
+(`AurisChamferBorder`) reaches most components but has gaps Flutter does not
+expose: the `Switch` track cannot be chamfered, and the linear
+`ProgressIndicator` cannot be segmented. Where a
 gap degrades the aesthetic, the theme is configured as closely as possible and
 a custom widget (§spec:custom-widgets) is provided as the preferred
 replacement — `AurisSwitch` and `AurisProgressBar` respectively. Some Material
