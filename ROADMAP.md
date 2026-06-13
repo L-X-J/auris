@@ -4,11 +4,13 @@
 <!-- assumptions later sections depend on. Completed work leaves from -->
 <!-- the head; new work enters at the tail. -->
 
-## Walking skeleton — package, tokens, theme core, runnable example
+## Walking skeleton — package, tokens, scheme, theme core, runnable example
 
-The smallest end-to-end slice: a package that builds, applies a token-driven
-theme to a real Material screen, and runs. Validates the whole chain (fonts →
-tokens → theme → app) before breadth is added.
+The smallest end-to-end slice: a package that builds, resolves the design
+scheme, applies it as a theme to a real Material screen, and runs. Validates
+the whole spine (fonts → primitive tokens → resolved scheme → ThemeExtension →
+theme → app) before breadth is added — the scheme/resolver seam is foundational
+because both the theme layer and every custom widget read it.
 
 ### §road:package-scaffold
 
@@ -19,9 +21,17 @@ deps, bundled OFL fonts), the `lib/src/` directory layout, and the
 
 ### §road:design-tokens
 
-Implement `AurisTokens` in `lib/src/tokens.dart` — all color, typography,
-shape (bevel), glow, and motion values as `const`. §spec:design-tokens.
-Depends on §road:package-scaffold.
+Implement `AurisTokens` in `lib/src/tokens.dart` — the primitive tier: all
+color, typography, shape (bevel), glow, and motion values as `const`.
+§spec:design-tokens. Depends on §road:package-scaffold.
+
+### §road:scheme-resolver
+
+Implement `AurisScheme` (a `ThemeExtension` of resolved semantic roles —
+surfaces, text roles, primary ramp, borders, bevel scale, and depth-by-intent)
+and its resolver taking brightness plus accent/bevel/glow overrides, with only
+the dark branch populated, in `lib/src/scheme.dart`. §spec:scheme. Depends on
+§road:design-tokens.
 
 ### §road:chamfer-clipper
 
@@ -31,9 +41,11 @@ corners at 45°. §spec:design-tokens. Depends on §road:design-tokens.
 
 ### §road:theme-core
 
-Implement `AurisTheme.light()` in `lib/src/theme.dart` with `ColorScheme` and
-the full `TextTheme` wired from tokens, with `AurisTheme.dark()` throwing
-`UnimplementedError`. §spec:theme-layer. Depends on §road:design-tokens.
+Implement `AurisTheme.light()` in `lib/src/theme.dart` deriving `ColorScheme`
+and the full `TextTheme` from the resolved `AurisScheme` and attaching that
+scheme to the returned `ThemeData` as a `ThemeExtension`, with
+`AurisTheme.dark()` throwing `UnimplementedError`. §spec:theme-layer,
+§spec:scheme. Depends on §road:scheme-resolver.
 
 ### §road:example-skeleton
 
@@ -43,7 +55,8 @@ Create a minimal runnable `example/lib/main.dart` that applies
 
 **Verify:** From `example/`, run `flutter run`. The app launches with a
 near-black background and amber text; bundled display/body/mono fonts render;
-a button and card show chamfered amber styling rather than default Material.
+a button and card show chamfered amber styling rather than default Material;
+`Theme.of(context).extension<AurisScheme>()` resolves to the dark scheme.
 `flutter analyze` reports zero warnings.
 
 ## Material re-skin — core controls
@@ -126,8 +139,10 @@ chamfer primitive.
 ### §road:auris-container
 
 Implement `AurisContainer` in `lib/src/widgets/auris_container.dart` — the
-chamfered border + fill + optional-glow primitive that clips its child via
-`ChamferClipper`. §spec:custom-widgets. Depends on §road:chamfer-clipper.
+chamfered border + fill + depth-by-intent primitive that clips its child via
+`ChamferClipper` and reads colors/bevel/depth from the resolved `AurisScheme`.
+§spec:custom-widgets, §spec:scheme. Depends on §road:chamfer-clipper,
+§road:scheme-resolver.
 
 ### §road:display-widgets
 
@@ -138,8 +153,9 @@ Implement `AurisBadge`, `AurisPanel`, `AurisNotification`, `AurisDataRow`, and
 ### §road:ornament-widgets
 
 Implement `AurisHexOrnament` and `AurisScanBracket`, with
-`lib/src/painters/hex_painter.dart`, in `lib/src/widgets/`. §spec:custom-widgets.
-Depends on §road:design-tokens.
+`lib/src/painters/hex_painter.dart`, in `lib/src/widgets/`, reading colors from
+the resolved `AurisScheme`. §spec:custom-widgets, §spec:scheme. Depends on
+§road:scheme-resolver.
 
 ### §road:display-widgets-showcase
 
@@ -165,9 +181,10 @@ label and status labels) in `lib/src/widgets/auris_switch.dart`.
 
 ### §road:auris-progress-bar
 
-Implement `AurisProgressBar` (segmented, with an `.animated` constructor) in
-`lib/src/widgets/auris_progress_bar.dart`. §spec:custom-widgets. Depends on
-§road:chamfer-clipper.
+Implement `AurisProgressBar` (segmented, with an `.animated` constructor)
+reading variant colors and depth from the resolved `AurisScheme` in
+`lib/src/widgets/auris_progress_bar.dart`. §spec:custom-widgets, §spec:scheme.
+Depends on §road:chamfer-clipper, §road:scheme-resolver.
 
 ### §road:terminal-and-stepper
 
@@ -189,16 +206,16 @@ the cursor blink; the stepper shows active/complete/error states.
 
 ## Customization
 
-Make the accent color, bevel scale, and glow intensity adjustable without
-forking, across both the theme layer and the custom widgets.
+Surface the resolver's override inputs publicly and prove they propagate, now
+that the scheme seam already accepts them and all widgets read the scheme.
 
 ### §road:customization-api
 
-Add optional accent/bevel/glow override parameters to `AurisTheme.light()`
-(defaults reproduce the canonical look) and route the custom widgets to resolve
-those values from the active theme/token set rather than hard-wired constants.
-§spec:customization. Depends on §road:theme-core, §road:display-widgets,
-§road:interactive-widgets-showcase.
+Expose optional accent/bevel/glow override parameters on `AurisTheme.light()`
+(defaults reproduce the canonical look) that pass through to the scheme resolver
+in `lib/src/theme.dart`, and confirm every Material component theme and custom
+widget honors them. §spec:customization. Depends on §road:theme-core,
+§road:display-widgets, §road:interactive-widgets-showcase.
 
 ### §road:customization-showcase
 
