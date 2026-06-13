@@ -39,10 +39,10 @@ class AurisProgressBar extends StatefulWidget {
   const AurisProgressBar({
     super.key,
     required this.value,
-    this.segments = 12,
+    this.segments = 20,
     this.variant = AurisProgressVariant.primary,
-    this.height = 18,
-    this.spacing = 3,
+    this.height = 10,
+    this.spacing = 2,
   })  : animated = false,
         assert(value >= 0 && value <= 1, 'value must be in 0..1'),
         assert(segments > 0, 'segments must be positive');
@@ -51,10 +51,10 @@ class AurisProgressBar extends StatefulWidget {
   const AurisProgressBar.animated({
     super.key,
     required this.value,
-    this.segments = 12,
+    this.segments = 20,
     this.variant = AurisProgressVariant.primary,
-    this.height = 18,
-    this.spacing = 3,
+    this.height = 10,
+    this.spacing = 2,
   })  : animated = true,
         assert(value >= 0 && value <= 1, 'value must be in 0..1'),
         assert(segments > 0, 'segments must be positive');
