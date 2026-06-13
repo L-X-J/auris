@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'scheme.dart';
+import 'theme/button_themes.dart';
+import 'theme/input_themes.dart';
 import 'tokens.dart';
 
 /// Factory for the Auris `ThemeData`.
@@ -14,10 +16,12 @@ import 'tokens.dart';
 /// light-background variant is anticipated (§spec:scope); [AurisTheme.dark] is
 /// reserved and throws [UnimplementedError] until it lands.
 ///
-/// This batch (the walking skeleton) populates `ColorScheme` and `TextTheme`
-/// only; the remaining component themes are added in later batches. Elevation
-/// and shadow defaults already reflect the aesthetic: elevation is `0` and
-/// shadows are transparent, so depth reads as glow rather than drop shadow.
+/// This batch populates `ColorScheme`, `TextTheme`, and the core-control
+/// component themes (buttons, input / dropdown decoration, and the selection
+/// controls — checkbox / radio / switch / slider / chip); the remaining
+/// component themes are added in later batches. Elevation and shadow defaults
+/// already reflect the aesthetic: elevation is `0` and shadows are transparent,
+/// so depth reads as glow rather than drop shadow.
 abstract final class AurisTheme {
   const AurisTheme._();
 
@@ -51,6 +55,23 @@ abstract final class AurisTheme {
       // Depth is communicated by glow, not Material elevation shadow.
       shadowColor: Colors.transparent,
       splashFactory: NoSplash.splashFactory,
+      // Button component themes — chamfered, flat, amber-overlaid, uppercase.
+      filledButtonTheme: AurisButtonThemes.filled(scheme),
+      elevatedButtonTheme: AurisButtonThemes.elevated(scheme),
+      outlinedButtonTheme: AurisButtonThemes.outlined(scheme),
+      textButtonTheme: AurisButtonThemes.text(scheme),
+      iconButtonTheme: AurisButtonThemes.icon(scheme),
+      floatingActionButtonTheme: AurisButtonThemes.fab(scheme),
+      segmentedButtonTheme: AurisButtonThemes.segmented(scheme),
+      // Input + dropdown decoration themes.
+      inputDecorationTheme: AurisInputThemes.inputDecoration(scheme),
+      dropdownMenuTheme: AurisInputThemes.dropdownMenu(scheme),
+      // Selection-control component themes.
+      checkboxTheme: AurisInputThemes.checkbox(scheme),
+      radioTheme: AurisInputThemes.radio(scheme),
+      switchTheme: AurisInputThemes.switchTheme(scheme),
+      sliderTheme: AurisInputThemes.slider(scheme),
+      chipTheme: AurisInputThemes.chip(scheme),
       // Carry the resolved scheme so custom widgets read the exact same values.
       extensions: <ThemeExtension<dynamic>>[scheme],
     );
