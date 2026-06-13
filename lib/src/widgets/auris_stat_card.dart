@@ -63,34 +63,33 @@ class AurisStatCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          // Large glowing value with an optional unit baseline suffix.
-          DecoratedBox(
-            decoration: BoxDecoration(boxShadow: scheme.depthActive.glow),
-            child: Text.rich(
-              TextSpan(
-                children: <InlineSpan>[
+          // Large value with a tight glyph glow — a text shadow that hugs the
+          // numerals, not a box halo that bled past the value.
+          Text.rich(
+            TextSpan(
+              children: <InlineSpan>[
+                TextSpan(
+                  text: value,
+                  style: TextStyle(
+                    fontFamily: AurisTokens.fontDisplay,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 34,
+                    height: 1.0,
+                    letterSpacing: AurisTokens.trackingHeading,
+                    color: scheme.primaryActive,
+                    shadows: scheme.depthSubtle.glow,
+                  ),
+                ),
+                if (unit != null)
                   TextSpan(
-                    text: value,
+                    text: ' ${unit!}',
                     style: TextStyle(
-                      fontFamily: AurisTokens.fontDisplay,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 34,
-                      height: 1.0,
-                      letterSpacing: AurisTokens.trackingHeading,
-                      color: scheme.primaryActive,
+                      fontFamily: AurisTokens.fontMono,
+                      fontSize: 14,
+                      color: scheme.textMid,
                     ),
                   ),
-                  if (unit != null)
-                    TextSpan(
-                      text: ' ${unit!}',
-                      style: TextStyle(
-                        fontFamily: AurisTokens.fontMono,
-                        fontSize: 14,
-                        color: scheme.textMid,
-                      ),
-                    ),
-                ],
-              ),
+              ],
             ),
           ),
           if (delta != null) ...<Widget>[
