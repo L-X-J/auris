@@ -224,12 +224,16 @@ class _AurisSwitchState extends State<AurisSwitch>
       t,
     )!;
 
-    // The slanted (parallelogram) HUD motif for the track and thumb.
-    const double trackSlant = 4;
-    const double thumbSlant = 4;
+    // The slanted (parallelogram) HUD motif. The slant scales with each
+    // element's height by a constant ratio so the track border and the thumb
+    // edges stay parallel (the same lean angle).
     const double thumbSize = _trackHeight - _thumbInset * 2;
     const double travel = _trackWidth - _thumbInset * 2 - thumbSize;
     final double thumbX = _thumbInset + travel * t;
+    const double slantRatio = 4 / _trackHeight;
+    const double trackSlant = _trackHeight * slantRatio;
+    const double thumbSlant = thumbSize * slantRatio;
+    const double focusSlant = (_trackHeight + 6) * slantRatio;
 
     return SizedBox(
       // Fixed size (track + reserved ring space) so focus never shifts layout.
@@ -240,7 +244,7 @@ class _AurisSwitchState extends State<AurisSwitch>
           // The keyboard-focus ring: a gold slanted outline around the track.
           decoration: ShapeDecoration(
             shape: AurisSlantBorder(
-              slant: trackSlant + 3,
+              slant: focusSlant,
               side: _focused && _enabled
                   ? BorderSide(color: scheme.primaryActive, width: 1.5)
                   : BorderSide.none,
