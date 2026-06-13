@@ -303,6 +303,7 @@ abstract final class AurisInputThemes {
       inactiveTickMarkColor: scheme.borderBright,
       trackHeight: 4,
       trackShape: const RectangularSliderTrackShape(),
+      thumbShape: const _AurisSliderThumb(),
       overlayShape:
           const RoundSliderOverlayShape(overlayRadius: 16),
       valueIndicatorTextStyle: TextStyle(
@@ -355,6 +356,51 @@ abstract final class AurisInputThemes {
         color: scheme.onPrimary,
       ),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+    );
+  }
+}
+
+/// An angular slider thumb — a chamfered square reticle (top-left + bottom-right
+/// cut) instead of Material's round thumb, to match the geometric aesthetic.
+class _AurisSliderThumb extends SliderComponentShape {
+  const _AurisSliderThumb();
+
+  /// Half the thumb's side length.
+  static const double half = 8;
+
+  @override
+  Size getPreferredSize(bool isEnabled, bool isDiscrete) =>
+      const Size.fromRadius(half);
+
+  @override
+  void paint(
+    PaintingContext context,
+    Offset center, {
+    required Animation<double> activationAnimation,
+    required Animation<double> enableAnimation,
+    required bool isDiscrete,
+    required TextPainter labelPainter,
+    required RenderBox parentBox,
+    required SliderThemeData sliderTheme,
+    required TextDirection textDirection,
+    required double value,
+    required double textScaleFactor,
+    required Size sizeWithOverflow,
+  }) {
+    final Color base = sliderTheme.thumbColor!;
+    final Color color = Color.lerp(
+      base.withValues(alpha: 0.4),
+      base,
+      enableAnimation.value,
+    )!;
+    final Rect rect = Rect.fromCenter(
+      center: center,
+      width: half * 2,
+      height: half * 2,
+    );
+    context.canvas.drawPath(
+      aurisChamferPath(rect, half * 0.7),
+      Paint()..color = color,
     );
   }
 }
