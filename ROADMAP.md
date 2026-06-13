@@ -4,47 +4,6 @@
 <!-- assumptions later sections depend on. Completed work leaves from -->
 <!-- the head; new work enters at the tail. -->
 
-## Custom HUD widgets — interactive & dynamic
-
-Deliver the stateful/animated HUD widgets and the custom replacements for the
-Material widgets Flutter cannot fully theme.
-
-### §road:auris-switch
-
-Implement `AurisSwitch` (true chamfered animated track and thumb, optional
-label and status labels) in `lib/src/widgets/auris_switch.dart`.
-§spec:custom-widgets.
-
-### §road:auris-progress-bar
-
-Implement `AurisProgressBar` (segmented, with an `.animated` constructor)
-reading variant colors and depth from the resolved `AurisScheme` in
-`lib/src/widgets/auris_progress_bar.dart`. §spec:custom-widgets, §spec:scheme.
-
-### §road:terminal-and-stepper
-
-Implement `AurisTerminal` (auto-scrolling monospace log with blinking cursor)
-and `AurisStepIndicator` in `lib/src/widgets/`. §spec:custom-widgets.
-
-### §road:auris-select
-
-Implement `AurisSelect` (custom dropdown: rotating caret, chamfered glowing
-popup, per-row dividers with hover/selected highlight — the reference look the
-native `DropdownMenu` cannot reach) in `lib/src/widgets/auris_select.dart`.
-§spec:custom-widgets.
-
-### §road:interactive-widgets-showcase
-
-Export the interactive widgets and add their showcase sections — including a
-live-appending terminal and an `AurisSelect` — to `example/lib/main.dart`.
-§spec:custom-widgets, §spec:showcase. Depends on §road:auris-switch,
-§road:auris-progress-bar, §road:terminal-and-stepper, §road:auris-select.
-
-**Verify:** In the example, toggle `AurisSwitch` and watch the thumb animate
-across a chamfered track; watch `AurisProgressBar` segments fill with the
-leading segment glowing; observe the terminal auto-scroll as lines append and
-the cursor blink; the stepper shows active/complete/error states.
-
 ## Customization
 
 Surface the resolver's override inputs publicly and prove they propagate, now
@@ -55,8 +14,7 @@ that the scheme seam already accepts them and all widgets read the scheme.
 Expose optional accent/bevel/glow override parameters on `AurisTheme.light()`
 (defaults reproduce the canonical look) that pass through to the scheme resolver
 in `lib/src/theme.dart`, and confirm every Material component theme and custom
-widget honors them. §spec:customization. Depends on
-§road:interactive-widgets-showcase.
+widget honors them. §spec:customization.
 
 ### §road:customization-showcase
 
@@ -78,14 +36,12 @@ respect, and 60fps — across everything built so far.
 
 Tune any token used in a primary text/control role that fails WCAG AA, document
 the dim tokens as decorative-only, and add a visible `gold` keyboard-focus
-decoration to all interactive custom widgets. §spec:accessibility. Depends on
-§road:interactive-widgets-showcase.
+decoration to all interactive custom widgets. §spec:accessibility.
 
 ### §road:reduced-motion-and-perf
 
 Make every animated widget honor `MediaQuery.disableAnimations` (render the end
 state) and bound glow/segment/clip work to hold 60fps. §spec:motion-performance.
-Depends on §road:interactive-widgets-showcase.
 
 ### §road:polish-showcase-verification
 
