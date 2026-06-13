@@ -106,8 +106,13 @@ class AurisNotification extends StatelessWidget {
                 color: v.accent,
                 boxShadow: <BoxShadow>[
                   BoxShadow(
-                    color: v.accent.withValues(alpha: 0.45),
-                    blurRadius: 10,
+                    color: v.accent.withValues(alpha: 0.65),
+                    blurRadius: 16,
+                    spreadRadius: 1,
+                  ),
+                  BoxShadow(
+                    color: v.accent.withValues(alpha: 0.3),
+                    blurRadius: 28,
                   ),
                 ],
               ),
