@@ -163,9 +163,9 @@ abstract final class AurisTokens {
   /// which looked diffuse on small markers.
   static const List<BoxShadow> glowActive = <BoxShadow>[
     BoxShadow(
-      color: Color(0x3DF0A500),
-      blurRadius: 3,
-      spreadRadius: -1,
+      color: Color(0x5AF0A500),
+      blurRadius: 1.5,
+      spreadRadius: 0,
     ),
   ];
 

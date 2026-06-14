@@ -61,12 +61,12 @@ void main() {
                           children: <Widget>[
                             Row(
                               children: <Widget>[
-                                const AurisStepIndicator(step: 1, state: AurisStepState.complete),
-                                const SizedBox(width: 16),
-                                const AurisStepIndicator(step: 2, state: AurisStepState.active),
-                                const SizedBox(width: 16),
-                                const AurisStepIndicator(step: 3, state: AurisStepState.inactive),
-                                const SizedBox(width: 16),
+                                const AurisStepIndicator(step: 1, state: AurisStepState.complete, size: 64),
+                                const SizedBox(width: 28),
+                                const AurisStepIndicator(step: 2, state: AurisStepState.active, size: 64),
+                                const SizedBox(width: 28),
+                                const AurisStepIndicator(step: 3, state: AurisStepState.inactive, size: 64),
+                                const SizedBox(width: 28),
                                 AurisRadio<int>(
                                   value: 0,
                                   groupValue: 0,
@@ -121,4 +121,119 @@ void main() {
       File('${outDir.path}/${v.name}.png').writeAsBytesSync(png!);
     });
   }
+
+  // Side-by-side comparison of active-step glow candidates, overriding
+  // depthActive per cell so several tightness options render in one image.
+  testWidgets('glow_compare', (WidgetTester tester) async {
+    final Directory outDir = Directory('/tmp/auris_renders')
+      ..createSync(recursive: true);
+    tester.view.physicalSize = const Size(1600, 500);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
+    const Color amber = Color(0xFFF0A500);
+    final List<({String label, List<BoxShadow> glow})> candidates =
+        <({String label, List<BoxShadow> glow})>[
+      (label: 'A none', glow: const <BoxShadow>[]),
+      (
+        label: 'B b1 s0',
+        glow: const <BoxShadow>[
+          BoxShadow(color: Color(0x66F0A500), blurRadius: 1),
+        ]
+      ),
+      (
+        label: 'C b2 s-1',
+        glow: const <BoxShadow>[
+          BoxShadow(color: Color(0x4DF0A500), blurRadius: 2, spreadRadius: -1),
+        ]
+      ),
+      (
+        label: 'D b3 s-1 (cur~)',
+        glow: const <BoxShadow>[
+          BoxShadow(color: Color(0x3DF0A500), blurRadius: 3, spreadRadius: -1),
+        ]
+      ),
+      (
+        label: 'E b6 s1 (wide)',
+        glow: <BoxShadow>[
+          BoxShadow(color: amber.withValues(alpha: 0.4), blurRadius: 6, spreadRadius: 1),
+        ]
+      ),
+    ];
+
+    await tester.pumpWidget(
+      MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: AurisTheme.light(),
+        home: Builder(
+          builder: (BuildContext context) {
+            final ThemeData base = Theme.of(context);
+            final AurisScheme scheme = base.extension<AurisScheme>()!;
+            return Scaffold(
+              backgroundColor: scheme.surfacePage,
+              body: Center(
+                child: RepaintBoundary(
+                  key: const ValueKey<String>('shot'),
+                  child: ColoredBox(
+                    color: scheme.surfacePage,
+                    child: Padding(
+                      padding: const EdgeInsets.all(48),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          for (final ({String label, List<BoxShadow> glow}) c
+                              in candidates) ...<Widget>[
+                            Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                Theme(
+                                  data: base.copyWith(
+                                    extensions: <ThemeExtension<dynamic>>[
+                                      scheme.copyWith(
+                                        depthActive:
+                                            AurisDepth(glow: c.glow),
+                                      ),
+                                    ],
+                                  ),
+                                  child: const AurisStepIndicator(
+                                    step: 2,
+                                    state: AurisStepState.active,
+                                    size: 64,
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  c.label,
+                                  style: const TextStyle(
+                                    color: Color(0xFFF0E8D0),
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(width: 36),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 400));
+    final RenderRepaintBoundary boundary = tester.renderObject(
+      find.byKey(const ValueKey<String>('shot')),
+    );
+    final Uint8List? png = await tester.runAsync(() async {
+      final ui.Image image = await boundary.toImage(pixelRatio: 2.5);
+      final ByteData? bytes =
+          await image.toByteData(format: ui.ImageByteFormat.png);
+      return bytes!.buffer.asUint8List();
+    });
+    File('${outDir.path}/glow_compare.png').writeAsBytesSync(png!);
+  });
 }
