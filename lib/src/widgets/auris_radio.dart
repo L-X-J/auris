@@ -73,9 +73,11 @@ class _AurisRadioState<T> extends State<AurisRadio<T>> {
   @override
   Widget build(BuildContext context) {
     final AurisScheme scheme = Theme.of(context).extension<AurisScheme>()!;
+    // Selection reads as a thicker, brighter outline (plus a subtle glow)
+    // rather than a second inner pip, which looked like a double outline.
     final Color border = !_enabled
-        ? scheme.borderResting
-        : (_selected ? scheme.primaryActive : scheme.borderBright);
+        ? (_selected ? scheme.primaryDim : scheme.borderResting)
+        : (_selected ? scheme.primaryHighlight : scheme.borderBright);
 
     final Widget indicator = SizedBox(
       // 18px box + reserved focus-ring space.
@@ -99,18 +101,8 @@ class _AurisRadioState<T> extends State<AurisRadio<T>> {
               height: 18,
               fill: scheme.surfaceInset,
               borderColor: border,
-              alignment: Alignment.center,
-              child: _selected
-                  ? DecoratedBox(
-                      decoration: ShapeDecoration(
-                        color: _enabled ? scheme.primaryActive : scheme.textDim,
-                        shape: const AurisChamferBorder(cut: 2),
-                        shadows:
-                            _enabled ? scheme.depthSubtle.glow : null,
-                      ),
-                      child: const SizedBox(width: 8, height: 8),
-                    )
-                  : const SizedBox(width: 8, height: 8),
+              borderWidth: _selected ? 2.0 : 1.0,
+              depth: _selected && _enabled ? scheme.depthSubtle : null,
             ),
           ),
         ),

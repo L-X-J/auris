@@ -280,6 +280,19 @@ class AurisScheme extends ThemeExtension<AurisScheme> {
             active,
           );
 
+    // When an accent override recolors the primary ramp, the primary-ramp glow
+    // must follow it — an amber glow around a teal element reads as a bug. The
+    // active/subtle depth glow is retinted to the accent (each shadow keeps its
+    // own alpha, blur, and spread). With no override the canonical amber
+    // primitives are used unchanged, so the default look is reproduced exactly.
+    // Danger/secondary glows are semantic and never recolor.
+    final List<BoxShadow> activeGlow = accent == null
+        ? AurisTokens.glowActive
+        : _tintGlow(AurisTokens.glowActive, active);
+    final List<BoxShadow> subtleGlow = accent == null
+        ? AurisTokens.glowSubtle
+        : _tintGlow(AurisTokens.glowSubtle, dim);
+
     return AurisScheme(
       brightness: Brightness.dark,
       // Surfaces.
@@ -318,12 +331,12 @@ class AurisScheme extends ThemeExtension<AurisScheme> {
       // the glow override, and carrying a border-emphasis fallback so a light
       // variant can express the same intent without glow.
       depthResting: AurisDepth.none,
-      depthSubtle: const AurisDepth(
-        glow: AurisTokens.glowSubtle,
+      depthSubtle: AurisDepth(
+        glow: subtleGlow,
         borderColor: AurisTokens.borderBright,
       ).scaled(glowScale),
       depthActive: AurisDepth(
-        glow: AurisTokens.glowActive,
+        glow: activeGlow,
         borderColor: active,
       ).scaled(glowScale),
       depthDanger: const AurisDepth(
@@ -335,6 +348,22 @@ class AurisScheme extends ThemeExtension<AurisScheme> {
         borderColor: AurisTokens.slate,
       ).scaled(glowScale),
     );
+  }
+
+  /// Retint a glow [BoxShadow] list to [base], preserving each shadow's own
+  /// alpha, offset, blur, and spread — used so an accent override carries
+  /// through to the primary-ramp glow as well as its border and fill.
+  static List<BoxShadow> _tintGlow(List<BoxShadow> glow, Color base) {
+    return <BoxShadow>[
+      for (final BoxShadow s in glow)
+        BoxShadow(
+          color: base.withValues(alpha: s.color.a),
+          offset: s.offset,
+          blurRadius: s.blurRadius,
+          spreadRadius: s.spreadRadius,
+          blurStyle: s.blurStyle,
+        ),
+    ];
   }
 
   @override

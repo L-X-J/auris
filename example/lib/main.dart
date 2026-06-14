@@ -1153,11 +1153,41 @@ class _CustomizationControl extends StatelessWidget {
           value: glowScale,
           onChanged: onGlowChanged,
         ),
-        const SizedBox(height: 12),
-        Text(
-          'Flip any control above — every section below recolors and '
-          're-shapes from the resolved scheme.',
-          style: text.bodySmall?.copyWith(color: scheme.textMid),
+        const SizedBox(height: 16),
+        // A live preview tile so the three knobs are legible on their own,
+        // without scrolling to find a glowing/chamfered element: its corner cut
+        // tracks BEVEL, its border + glow tint track ACCENT, and the halo size
+        // tracks GLOW — all read straight from the resolved scheme.
+        Row(
+          children: <Widget>[
+            AurisContainer(
+              cut: scheme.bevel.lg,
+              width: 96,
+              height: 56,
+              fill: scheme.surfaceInset,
+              borderColor: scheme.primaryActive,
+              borderWidth: 2,
+              depth: scheme.depthActive,
+              alignment: Alignment.center,
+              child: Text(
+                'PREVIEW',
+                style: TextStyle(
+                  fontFamily: AurisTokens.fontMono,
+                  fontSize: 11,
+                  letterSpacing: AurisTokens.trackingLabel,
+                  color: scheme.primaryHighlight,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Flip any control — the tile and every section below recolor '
+                'and re-shape from the resolved scheme.',
+                style: text.bodySmall?.copyWith(color: scheme.textMid),
+              ),
+            ),
+          ],
         ),
       ],
     );
