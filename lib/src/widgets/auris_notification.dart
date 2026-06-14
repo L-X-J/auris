@@ -100,18 +100,23 @@ class AurisNotification extends StatelessWidget {
             // Left accent bar with a soft edge glow that bleeds into the panel.
             // A dedicated glow (not the tight box depth token) because the bar
             // is only a few px wide — the depth token's negative spread would
-            // shrink to nothing here.
+            // shrink to nothing here. The glow's alpha honors the scheme's glow
+            // override (brighter, not wider) so it tracks the customization knob.
             DecoratedBox(
               decoration: BoxDecoration(
                 color: v.accent,
                 boxShadow: <BoxShadow>[
                   BoxShadow(
-                    color: v.accent.withValues(alpha: 0.65),
+                    color: v.accent.withValues(
+                      alpha: (0.65 * scheme.glowScale).clamp(0.0, 1.0),
+                    ),
                     blurRadius: 16,
                     spreadRadius: 1,
                   ),
                   BoxShadow(
-                    color: v.accent.withValues(alpha: 0.3),
+                    color: v.accent.withValues(
+                      alpha: (0.3 * scheme.glowScale).clamp(0.0, 1.0),
+                    ),
                     blurRadius: 28,
                   ),
                 ],

@@ -31,12 +31,12 @@ class AurisDepth {
   /// read.
   final Color? insetColor;
 
-  /// Scales the resolved glow by [factor] (the glow intensity override): the
-  /// blur *reach* and the alpha *strength* grow with the factor, while the
-  /// negative spread is held constant. Scaling the spread in step would pull the
-  /// halo back in as fast as the blur pushed it out, so the glow looked
-  /// unchanged between settings — holding spread fixed makes the intensity knob
-  /// actually visible. A [factor] of 1 returns this depth unchanged.
+  /// Scales the resolved glow by [factor] (the glow intensity override): only
+  /// the alpha *strength* grows with the factor; the blur radius and spread are
+  /// held constant so a stronger glow gets brighter/denser rather than wider.
+  /// Scaling the blur instead made the halo balloon into a soft cloud that no
+  /// longer hugged the element's shape — intensity, not reach, is the knob. A
+  /// [factor] of 1 returns this depth unchanged; 0 yields no glow.
   AurisDepth scaled(double factor) {
     if (factor == 1 || glow.isEmpty) return this;
     return AurisDepth(
@@ -47,7 +47,7 @@ class AurisDepth {
               alpha: (s.color.a * factor).clamp(0.0, 1.0),
             ),
             offset: s.offset,
-            blurRadius: s.blurRadius * factor,
+            blurRadius: s.blurRadius,
             spreadRadius: s.spreadRadius,
             blurStyle: s.blurStyle,
           ),
@@ -128,6 +128,7 @@ class AurisBevelScale {
 class AurisScheme extends ThemeExtension<AurisScheme> {
   const AurisScheme({
     required this.brightness,
+    this.glowScale = 1.0,
     required this.surfacePage,
     required this.surfacePanel,
     required this.surfaceInset,
@@ -156,6 +157,12 @@ class AurisScheme extends ThemeExtension<AurisScheme> {
 
   /// The brightness this scheme was resolved for.
   final Brightness brightness;
+
+  /// The glow-intensity multiplier this scheme was resolved with (the
+  /// customization `glowScale`). The resolved `depth*` cues already bake this in;
+  /// it is exposed so a widget building a *custom* glow outside the depth tokens
+  /// (e.g. a thin accent bar's edge glow) can honor the same override.
+  final double glowScale;
 
   // --- Surfaces ---
   /// Page background.
@@ -319,6 +326,7 @@ class AurisScheme extends ThemeExtension<AurisScheme> {
 
     return AurisScheme(
       brightness: Brightness.dark,
+      glowScale: glowScale,
       // Surfaces.
       surfacePage: AurisTokens.void_,
       surfacePanel: AurisTokens.panel,
@@ -402,6 +410,7 @@ class AurisScheme extends ThemeExtension<AurisScheme> {
   @override
   AurisScheme copyWith({
     Brightness? brightness,
+    double? glowScale,
     Color? surfacePage,
     Color? surfacePanel,
     Color? surfaceInset,
@@ -429,6 +438,7 @@ class AurisScheme extends ThemeExtension<AurisScheme> {
   }) {
     return AurisScheme(
       brightness: brightness ?? this.brightness,
+      glowScale: glowScale ?? this.glowScale,
       surfacePage: surfacePage ?? this.surfacePage,
       surfacePanel: surfacePanel ?? this.surfacePanel,
       surfaceInset: surfaceInset ?? this.surfaceInset,
@@ -467,6 +477,7 @@ class AurisScheme extends ThemeExtension<AurisScheme> {
   AurisScheme lerpFrom(AurisScheme other, double t) {
     return AurisScheme(
       brightness: t < 0.5 ? brightness : other.brightness,
+      glowScale: lerpDouble(glowScale, other.glowScale, t),
       surfacePage: Color.lerp(surfacePage, other.surfacePage, t)!,
       surfacePanel: Color.lerp(surfacePanel, other.surfacePanel, t)!,
       surfaceInset: Color.lerp(surfaceInset, other.surfaceInset, t)!,

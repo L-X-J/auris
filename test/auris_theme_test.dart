@@ -74,9 +74,15 @@ void main() {
         glowScale: 2.0,
       );
       expect(scheme.bevel.md, AurisTokens.bevelMd * 2.0);
+      // Glow intensity scales alpha (brighter), not blur (wider) — the blur is
+      // held constant so the glow keeps hugging the element's shape.
+      expect(
+        scheme.depthActive.glow.first.color.a,
+        (AurisTokens.glowActive.first.color.a * 2.0).clamp(0.0, 1.0),
+      );
       expect(
         scheme.depthActive.glow.first.blurRadius,
-        AurisTokens.glowActive.first.blurRadius * 2.0,
+        AurisTokens.glowActive.first.blurRadius,
       );
     });
 

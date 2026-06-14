@@ -49,26 +49,27 @@ void main() {
       expect(bold.bevel.xl, closeTo(base.bevel.xl * 2, 1e-9));
     });
 
-    test('glowScale scales blur reach + alpha but holds spread constant', () {
+    test('glowScale scales glow alpha but holds blur + spread constant', () {
       final AurisScheme base = AurisScheme.resolve();
       final AurisScheme bold = AurisScheme.resolve(glowScale: 2.0);
 
       final BoxShadow baseGlow = base.depthActive.glow.single;
       final BoxShadow boldGlow = bold.depthActive.glow.single;
 
-      // Blur reach and alpha grow with the factor…
-      expect(boldGlow.blurRadius, closeTo(baseGlow.blurRadius * 2, 1e-9));
-      expect(boldGlow.color.a, closeTo((baseGlow.color.a * 2).clamp(0.0, 1.0), 1e-9));
+      // Alpha (intensity) grows with the factor…
+      expect(
+        boldGlow.color.a,
+        closeTo((baseGlow.color.a * 2).clamp(0.0, 1.0), 1e-9),
+      );
 
-      // …but the negative spread is held constant, otherwise the larger spread
-      // would cancel the larger blur and the halo would look unchanged.
+      // …but blur and spread are held constant so a stronger glow gets brighter,
+      // not wider — it keeps hugging the element's shape.
+      expect(boldGlow.blurRadius, closeTo(baseGlow.blurRadius, 1e-9));
       expect(boldGlow.spreadRadius, closeTo(baseGlow.spreadRadius, 1e-9));
 
-      // The subtle cue scales by the same rule, independently.
-      expect(
-        bold.depthSubtle.glow.single.blurRadius,
-        closeTo(base.depthSubtle.glow.single.blurRadius * 2, 1e-9),
-      );
+      // The scheme also carries the raw factor for custom glows to honor.
+      expect(bold.glowScale, 2.0);
+      expect(base.glowScale, 1.0);
     });
 
     test('defaults reproduce the canonical look exactly', () {
