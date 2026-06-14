@@ -21,7 +21,10 @@ class _AccentOption {
 /// ramp plus a cool teal, a magenta, and a green, so flipping the control
 /// re-skins every themed Material widget AND every Auris custom widget at once.
 const List<_AccentOption> _accentOptions = <_AccentOption>[
-  _AccentOption('AMBER', null),
+  // null = no override → the active theme's native accent (gold on dark, the
+  // deep teal on light). Labelled DEFAULT, not AMBER, because the default accent
+  // differs by variant.
+  _AccentOption('DEFAULT', null),
   _AccentOption('TEAL', Color(0xFF35E0C0)),
   _AccentOption('MAGENTA', Color(0xFFE048B0)),
   _AccentOption('GREEN', Color(0xFF6AD050)),
@@ -1284,11 +1287,13 @@ class _AccentSwatch extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AurisScheme scheme = Theme.of(context).extension<AurisScheme>()!;
-    // The swatch always shows the accent it selects, so the default option must
-    // read as the canonical amber/gold even while a different accent is live —
-    // reading scheme.primaryActive would make the AMBER chip follow the current
-    // selection instead of standing for amber.
-    final Color swatch = option.color ?? AurisTokens.gold;
+    // The swatch shows the accent it selects. For the DEFAULT (no-override)
+    // option that is the active variant's NATIVE accent — gold on dark, the deep
+    // teal on light — resolved fresh for the current brightness so it neither
+    // follows the live selection nor hardcodes gold (which lied in light mode).
+    final Color swatch = option.color ??
+        AurisScheme.resolve(brightness: Theme.of(context).brightness)
+            .primaryActive;
 
     return GestureDetector(
       onTap: onTap,
