@@ -375,6 +375,20 @@ void main() {
                           height: 320,
                           child: Stepper(
                             currentStep: 1,
+                            stepIconBuilder: (int i, StepState state) {
+                              final AurisStepState s = switch (state) {
+                                StepState.complete => AurisStepState.complete,
+                                StepState.error => AurisStepState.error,
+                                _ => i == 1
+                                    ? AurisStepState.active
+                                    : AurisStepState.inactive,
+                              };
+                              return AurisStepIndicator(
+                                step: i + 1,
+                                state: s,
+                                size: 24,
+                              );
+                            },
                             steps: const <Step>[
                               Step(
                                 title: Text('CALIBRATE'),

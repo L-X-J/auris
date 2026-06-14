@@ -68,7 +68,16 @@ class AurisStepIndicator extends StatelessWidget {
         content = _label(foreground, glyphGlow);
       case AurisStepState.active:
         border = scheme.primaryActive;
-        fill = scheme.primaryActive.withValues(alpha: 0.16);
+        // Opaque (the dim amber composited over the page) rather than a
+        // translucent fill: a translucent marker lets whatever sits behind it
+        // show through — e.g. Material's Stepper draws a slate circle behind the
+        // step icon, which bled through a see-through fill. The chamfered box
+        // fully covers the inscribed circle, so an opaque fill hides it while
+        // looking identical on a normal background.
+        fill = Color.alphaBlend(
+          scheme.primaryActive.withValues(alpha: 0.16),
+          scheme.surfacePage,
+        );
         foreground = scheme.primaryActive;
         glyphGlow = scheme.depthActive.glow;
         content = _label(foreground, glyphGlow);
@@ -79,7 +88,11 @@ class AurisStepIndicator extends StatelessWidget {
         content = Icon(Icons.check, size: size * 0.55, color: foreground);
       case AurisStepState.error:
         border = scheme.dangerBright;
-        fill = scheme.danger.withValues(alpha: 0.22);
+        // Opaque for the same reason as the active fill (hide anything behind).
+        fill = Color.alphaBlend(
+          scheme.danger.withValues(alpha: 0.22),
+          scheme.surfacePage,
+        );
         foreground = scheme.dangerBright;
         glyphGlow = scheme.depthDanger.glow;
         content = Icon(

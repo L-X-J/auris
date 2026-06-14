@@ -736,6 +736,23 @@ class _ShowcaseScreenState extends State<_ShowcaseScreen> {
                   height: 280,
                   child: Stepper(
                     currentStep: _step,
+                    // Replace Material's default round step icons with the
+                    // chamfered AurisStepIndicator so the stepper matches the
+                    // HUD aesthetic (§spec:custom-widgets).
+                    stepIconBuilder: (int stepIndex, StepState state) {
+                      final AurisStepState s = switch (state) {
+                        StepState.complete => AurisStepState.complete,
+                        StepState.error => AurisStepState.error,
+                        _ => stepIndex == _step
+                            ? AurisStepState.active
+                            : AurisStepState.inactive,
+                      };
+                      return AurisStepIndicator(
+                        step: stepIndex + 1,
+                        state: s,
+                        size: 24,
+                      );
+                    },
                     onStepTapped: (int s) => setState(() => _step = s),
                     controlsBuilder: (BuildContext context,
                         ControlsDetails details) {
