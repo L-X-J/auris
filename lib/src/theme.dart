@@ -41,19 +41,45 @@ abstract final class AurisTheme {
     double bevelScale = 1.0,
     double glowScale = 1.0,
   }) {
-    final AurisScheme scheme = AurisScheme.resolve(
-      brightness: Brightness.dark,
-      accent: accent,
-      bevelScale: bevelScale,
-      glowScale: glowScale,
+    return _buildTheme(
+      AurisScheme.resolve(
+        brightness: Brightness.light,
+        accent: accent,
+        bevelScale: bevelScale,
+        glowScale: glowScale,
+      ),
     );
+  }
 
+  /// The canonical amber-on-near-black variant.
+  ///
+  /// [accent], [bevelScale], and [glowScale] are the same customization
+  /// overrides as [light].
+  static ThemeData dark({
+    Color? accent,
+    double bevelScale = 1.0,
+    double glowScale = 1.0,
+  }) {
+    return _buildTheme(
+      AurisScheme.resolve(
+        brightness: Brightness.dark,
+        accent: accent,
+        bevelScale: bevelScale,
+        glowScale: glowScale,
+      ),
+    );
+  }
+
+  /// Build the fully specified [ThemeData] from a resolved [scheme], for either
+  /// brightness — the `ColorScheme`, `TextTheme`, and every component theme are
+  /// derived from the same scheme, so the variant flows through one place.
+  static ThemeData _buildTheme(AurisScheme scheme) {
     final ColorScheme colorScheme = _colorSchemeFrom(scheme);
     final TextTheme textTheme = _textThemeFrom(scheme);
 
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.dark,
+      brightness: scheme.brightness,
       colorScheme: colorScheme,
       textTheme: textTheme,
       scaffoldBackgroundColor: scheme.surfacePage,
@@ -104,15 +130,6 @@ abstract final class AurisTheme {
       searchViewTheme: AurisDataThemes.searchView(scheme),
       // Carry the resolved scheme so custom widgets read the exact same values.
       extensions: <ThemeExtension<dynamic>>[scheme],
-    );
-  }
-
-  /// Reserved for the anticipated light-background variant (§spec:scope).
-  /// Unimplemented in v0.1.0.
-  static ThemeData dark() {
-    throw UnimplementedError(
-      'AurisTheme.dark() is reserved for the anticipated light-background '
-      'variant and is not implemented in v0.1.0 (see §spec:scope).',
     );
   }
 

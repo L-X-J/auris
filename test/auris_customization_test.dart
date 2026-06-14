@@ -138,7 +138,7 @@ void main() {
     });
 
     test('defaults attach the canonical scheme', () {
-      final ThemeData theme = AurisTheme.light();
+      final ThemeData theme = AurisTheme.dark();
       expect(theme.colorScheme.primary, AurisTokens.gold);
       expect(theme.extension<AurisScheme>()!.bevel.md, AurisTokens.bevelMd);
     });

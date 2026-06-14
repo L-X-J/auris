@@ -54,13 +54,14 @@ resolution point is what lets customization (§spec:customization) and the
 anticipated light variant (§spec:scope) re-skin the entire kit, Material
 components and custom widgets alike, through one mechanism instead of two.
 
-**Naming note.** `AurisTheme.light()` is the default and only implemented
-constructor; "light" is a historical misnomer — Auris is always dark in
-v0.1.0. A genuine light-background variant is an anticipated future requirement
-(see §spec:scope); when it lands it will force the `light()`/`dark()` naming to
-be reconsidered, since today both names describe dark themes. This is flagged
-now as known debt rather than resolved, because v0.1.0 ships a single variant
-and renaming ahead of need would churn the public API.
+**Variants.** Both variants are implemented and honestly named:
+`AurisTheme.dark()` is the canonical amber-on-near-black look, and
+`AurisTheme.light()` is a clean, technical light-background variant — cool
+light-grey surfaces, white panels, dark slate text, and a deep-teal accent whose
+glow is a brightened teal (amber glow does not read on a pale surface; see
+§spec:scheme "Depth as a role"). Both are the same resolution with a different
+`Brightness` input (§spec:scheme) and accept the same accent/bevel/glow
+overrides. The earlier `light()`-returns-dark misnomer is resolved.
 
 ---
 
@@ -218,18 +219,18 @@ different scheme and that subtree re-skins independently.
 **The resolution seam.** The scheme is produced by one resolver that takes a
 target `Brightness`, an optional accent override, and optional bevel/glow
 scales, and returns a fully populated `AurisScheme` built from the primitive
-tokens (§spec:design-tokens). v0.1.0 implements only the dark resolution;
-requesting any other brightness is unsupported for now. The seam — brightness
-as an explicit input to a role-producing resolver — exists in v0.1.0 even
-though only one branch is populated, so adding the light variant is adding a
-branch, not restructuring consumers.
+tokens (§spec:design-tokens). Both the dark and light branches are implemented;
+brightness as an explicit input to a role-producing resolver is what let the
+light variant land as an added branch rather than a consumer rewrite.
 
 **Depth as a role.** Consumers request depth by intent (e.g. "active
-elevation"), and the scheme resolves that intent to a concrete cue. In the dark
-variant the cue is amber glow (the `glow*` primitives); the resolved depth is
-defined richly enough to express a non-glow cue (such as a border or inset
-emphasis) so a light variant — where amber glow on a pale surface is nearly
-invisible — can substitute an appropriate cue without changing any widget.
+elevation"), and the scheme resolves that intent to a concrete cue. The dark
+variant resolves it to amber glow (the `glow*` primitives); the light variant
+resolves the *same intent* to a teal glow (a brightened accent), since amber
+glow on a pale surface is nearly invisible and a saturated cool glow reads. The
+cue color/strength is a property of the resolved scheme, so no widget changes
+between variants — they request "active depth" and get whatever each variant
+resolves it to.
 
 **Rationale and tradeoffs.** A `ThemeExtension` was chosen over a bespoke
 `InheritedWidget` wrapper because it rides on the `ThemeData` the adopter
@@ -250,13 +251,14 @@ values.
 
 Cites: §req:success-criteria, §req:user-stories, §req:priorities
 
-**Observable behavior.** When an application sets `theme: AurisTheme.light()`
-on its `MaterialApp`, every standard Material 3 widget renders in the Auris
-aesthetic with no further work. No standard widget renders with default
-Material styling — this is the kit's top success criterion and its primary
-defense against the leading abandonment risk ("widgets look broken/unstyled").
+**Observable behavior.** When an application sets `theme: AurisTheme.dark()` (or
+`AurisTheme.light()`) on its `MaterialApp`, every standard Material 3 widget
+renders in the Auris aesthetic with no further work. No standard widget renders
+with default Material styling — this is the kit's top success criterion and its
+primary defense against the leading abandonment risk ("widgets look
+broken/unstyled").
 
-`AurisTheme.light()` returns a fully specified `ThemeData` whose `ColorScheme`
+`AurisTheme.dark()`/`light()` return a fully specified `ThemeData` whose `ColorScheme`
 and every component theme are derived from the resolved `AurisScheme`
 (§spec:scheme), which is also attached to the returned `ThemeData` as a
 `ThemeExtension` so custom widgets share the exact same resolved values. Any
@@ -521,19 +523,18 @@ in CI when the look drifts (§req:success-criteria).
 
 ## Scope and non-goals §spec:scope
 
-*Status: not started*
+*Status: in progress*
 
 Cites: §req:constraints, §req:priorities
 
+**Light variant — now implemented.** Originally deferred, the light-background
+variant landed early via the brightness seam (§spec:scheme): a clean technical
+light theme with a glowing teal accent (§spec:overview "Variants"). It is an
+additive resolver branch — the dark variant is unchanged. A *higher-contrast*
+variant remains anticipated future work on the same seam.
+
 Deferred beyond v0.1.0, by deliberate decision:
 
-- A light-background theme variant (and a higher-contrast variant). Deferred,
-  but **anticipated** rather than speculative: the resolved-scheme architecture
-  and its brightness seam (§spec:scheme) are built now so the variant is an
-  additive resolver branch — including a non-glow depth cue — rather than a
-  restructuring of consumers. `AurisTheme.dark()` is reserved and unimplemented;
-  the `light()`/`dark()` naming is revisited when this variant lands
-  (§spec:overview).
 - Actual pub.dev publication (the package is publication-*ready*, not
   published).
 - Localization / RTL support.

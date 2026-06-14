@@ -109,6 +109,75 @@ class AurisBevelScale {
   }
 }
 
+/// The light-variant palette: a clean, technical light theme with a glowing
+/// teal accent (cool-grey surfaces, white panels, dark slate text). It mirrors
+/// the dark variant's structure — a deep [accent] that clears AA for
+/// text/borders, plus a vibrant [accentHi] for the focus highlight; the glow is
+/// a brightened [accent] (so it matches what it glows) rather than amber, which
+/// would not read on a cool-light surface.
+@immutable
+class _LightPalette {
+  const _LightPalette({
+    required this.page,
+    required this.panel,
+    required this.inset,
+    required this.textHi,
+    required this.textMid,
+    required this.textDim,
+    required this.accent,
+    required this.accentDim,
+    required this.accentHi,
+    required this.onAccent,
+    required this.border,
+    required this.borderBright,
+    required this.secondary,
+    required this.secondaryDim,
+  });
+
+  final Color page;
+  final Color panel;
+  final Color inset;
+  final Color textHi;
+  final Color textMid;
+  final Color textDim;
+
+  /// Deep accent (AA on light) for text / icons / borders / fills.
+  final Color accent;
+
+  /// Dim / inactive accent rung.
+  final Color accentDim;
+
+  /// Vibrant accent used for the glow and focus highlight only.
+  final Color accentHi;
+
+  /// Foreground drawn on an accent-filled surface.
+  final Color onAccent;
+  final Color border;
+  final Color borderBright;
+  final Color secondary;
+  final Color secondaryDim;
+}
+
+/// The light variant: a clean, technical light theme — cool light-grey page,
+/// white panels, dark slate text, a deep-teal accent that clears AA, and a
+/// brightened-teal glow on the data/active elements.
+const _LightPalette _lightPalette = _LightPalette(
+  page: Color(0xFFECEFF2),
+  panel: Color(0xFFFFFFFF),
+  inset: Color(0xFFF3F6F8),
+  textHi: Color(0xFF1B2730),
+  textMid: Color(0xFF50606D),
+  textDim: Color(0xFF9DAAB6),
+  accent: Color(0xFF0B6E80),
+  accentDim: Color(0xFF4E818D),
+  accentHi: Color(0xFF18C4DC),
+  onAccent: Color(0xFFFFFFFF),
+  border: Color(0xFFD7DEE4),
+  borderBright: Color(0xFFB4C1CB),
+  secondary: Color(0xFF3E6B78),
+  secondaryDim: Color(0xFF7FA0AB),
+);
+
 /// The single resolved design scheme every Auris consumer reads.
 ///
 /// `AurisScheme` carries every design value as a **semantic role** rather than
@@ -251,27 +320,31 @@ class AurisScheme extends ThemeExtension<AurisScheme> {
   /// multiplies the resolved depth intensity. All overrides are optional and
   /// their defaults reproduce the canonical look exactly (§spec:customization).
   ///
-  /// v0.1.0 implements only [Brightness.dark]; any other brightness is
-  /// unsupported and throws [UnsupportedError]. The brightness input is an
-  /// explicit seam so the light variant becomes an added branch, not a consumer
-  /// rewrite (§spec:scheme "The resolution seam").
+  /// Both [Brightness.dark] (amber-on-near-black) and [Brightness.light] (a
+  /// light-background variant) are supported. The brightness input is an
+  /// explicit seam so the two variants are branches of one resolution rather
+  /// than two mechanisms (§spec:scheme "The resolution seam").
   factory AurisScheme.resolve({
     Brightness brightness = Brightness.dark,
     Color? accent,
     double bevelScale = 1.0,
     double glowScale = 1.0,
   }) {
-    if (brightness != Brightness.dark) {
-      throw UnsupportedError(
-        'AurisScheme only resolves Brightness.dark in v0.1.0; '
-        'a light variant is an anticipated future branch (see §spec:scope).',
-      );
+    switch (brightness) {
+      case Brightness.dark:
+        return _resolveDark(
+          accent: accent,
+          bevelScale: bevelScale,
+          glowScale: glowScale,
+        );
+      case Brightness.light:
+        return _resolveLight(
+          _lightPalette,
+          accent: accent,
+          bevelScale: bevelScale,
+          glowScale: glowScale,
+        );
     }
-    return _resolveDark(
-      accent: accent,
-      bevelScale: bevelScale,
-      glowScale: glowScale,
-    );
   }
 
   static AurisScheme _resolveDark({
@@ -378,6 +451,108 @@ class AurisScheme extends ThemeExtension<AurisScheme> {
       depthSecondary: const AurisDepth(
         glow: AurisTokens.glowSlate,
         borderColor: AurisTokens.slate,
+      ).scaled(glowScale),
+    );
+  }
+
+  /// Resolve the light variant from a candidate [p] palette — a clean technical
+  /// light theme with a glowing cyan accent. The look mirrors the dark variant's
+  /// structure (a deep accent that clears AA, a vibrant highlight used for the
+  /// glow), so depth stays the same amber-replaced-by-cyan *glow* channel rather
+  /// than a flat drop shadow: a saturated cyan glow reads on a cool-light surface
+  /// where amber would not (§spec:scheme "Depth as a role").
+  static AurisScheme _resolveLight(
+    _LightPalette p, {
+    required Color? accent,
+    required double bevelScale,
+    required double glowScale,
+  }) {
+    // With no override the palette's tuned (AA-checked) rungs are used. An accent
+    // override replaces the deep rung; the dim/highlight (glow) rungs are derived
+    // around it so the ramp and its glow stay coherent.
+    final Color active = accent ?? p.accent;
+    final Color dim = accent == null
+        ? p.accentDim
+        : Color.alphaBlend(active.withValues(alpha: 0.45), p.panel);
+    final Color highlight = accent == null
+        ? p.accentHi
+        : Color.alphaBlend(
+            const Color(0xFFFFFFFF).withValues(alpha: 0.35),
+            active,
+          );
+
+    // The glow color is a brightened version of whatever it glows (same hue,
+    // raised lightness) rather than a separate electric cyan, so a glowing value
+    // reads as the teal text emitting light instead of a mismatched halo.
+    Color brighten(Color c, double byLightness) {
+      final HSLColor h = HSLColor.fromColor(c);
+      return h.withLightness((h.lightness + byLightness).clamp(0.0, 1.0)).toColor();
+    }
+
+    final Color primaryGlow = brighten(active, 0.22);
+    final Color secondaryGlow = brighten(p.secondary, 0.24);
+
+    List<BoxShadow> glow(Color c, double alpha, double blur, double spread) {
+      return <BoxShadow>[
+        BoxShadow(
+          color: c.withValues(alpha: alpha),
+          blurRadius: blur,
+          spreadRadius: spread,
+        ),
+      ];
+    }
+
+    return AurisScheme(
+      brightness: Brightness.light,
+      glowScale: glowScale,
+      surfacePage: p.page,
+      surfacePanel: p.panel,
+      surfaceInset: p.inset,
+      textBright: p.textHi,
+      textMid: p.textMid,
+      textDim: p.textDim,
+      primaryDim: dim,
+      primaryActive: active,
+      primaryHighlight: highlight,
+      onPrimary: p.onAccent,
+      secondary: p.secondary,
+      secondaryDim: p.secondaryDim,
+      borderResting: p.border,
+      borderBright: p.borderBright,
+      // Light-specific semantic colors: the dark tokens (bright red/green) are
+      // too light to clear AA as text on a light surface, so the "bright" rung
+      // (used for status TEXT) is a darker, AA-safe red/green and the base rung
+      // is a slightly lighter fill color.
+      danger: const Color(0xFFC4452F),
+      dangerBright: const Color(0xFFA8301F),
+      success: const Color(0xFF3A8E5C),
+      successBright: const Color(0xFF287049),
+      bevel: AurisBevelScale(
+        xs: AurisTokens.bevelXs * bevelScale,
+        sm: AurisTokens.bevelSm * bevelScale,
+        md: AurisTokens.bevelMd * bevelScale,
+        lg: AurisTokens.bevelLg * bevelScale,
+        xl: AurisTokens.bevelXl * bevelScale,
+      ),
+      // Cyan glow (the vibrant highlight) instead of the dark variant's amber —
+      // pushed harder than on dark because a colored glow has to fight a bright
+      // surface to read as a bloom.
+      depthResting: AurisDepth.none,
+      depthSubtle: AurisDepth(
+        glow: glow(primaryGlow, 0.5, 7, 0),
+        borderColor: p.borderBright,
+      ).scaled(glowScale),
+      depthActive: AurisDepth(
+        glow: glow(primaryGlow, 0.72, 9, 1),
+        borderColor: active,
+      ).scaled(glowScale),
+      depthDanger: AurisDepth(
+        glow: glow(brighten(AurisTokens.dangerBright, 0.12), 0.6, 8, 1),
+        borderColor: AurisTokens.dangerBright,
+      ).scaled(glowScale),
+      depthSecondary: AurisDepth(
+        glow: glow(secondaryGlow, 0.55, 8, 1),
+        borderColor: p.secondary,
       ).scaled(glowScale),
     );
   }

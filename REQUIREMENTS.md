@@ -141,10 +141,10 @@ Each criterion is observable from the product's visible surface.
   data layer.
 - **Zero runtime dependencies** — Flutter SDK only.
 - **Material 3** on Flutter ≥ 3.22 / Dart ≥ 3.4.
-- **Dark theme only** for v0.1.0. A light-background variant (and a
-  higher-contrast variant) is an *anticipated* future requirement, not merely
-  a possibility — the design must not preclude it, even though v0.1.0 does not
-  implement it.
+- **Dark and light variants** ship in v0.1.0: the canonical amber-on-near-black
+  dark theme and a clean technical light theme (glowing teal accent), both from
+  one resolver via a `Brightness` seam. A *higher-contrast* variant remains an
+  anticipated future requirement the design must not preclude.
 - **Font licensing** — fonts may be bundled only if legally redistributable.
   Rajdhani, Exo 2, and Share Tech Mono are SIL Open Font License, which
   permits bundling; the kit must still degrade gracefully if a font is
@@ -184,8 +184,7 @@ Ordered by user impact.
 **Nice-to-have / deferred (post-v0.1.0):**
 
 - Actual pub.dev publication.
-- A light-background theme variant (and a higher-contrast variant) — deferred
-  past v0.1.0 but *anticipated*, so the v0.1.0 architecture is expected to
-  accommodate it without a rewrite.
+- A *higher-contrast* variant (the light-background variant shipped early in
+  v0.1.0; a higher-contrast one remains future work on the same brightness seam).
 - Localization / RTL and web/desktop-specific adaptations.
 - Storybook / Widgetbook integration.

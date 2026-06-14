@@ -47,8 +47,10 @@ void main() {
   const double aaNormal = 4.5;
   const double aaLargeOrBoundary = 3.0;
 
+  // The dark (amber-on-near-black) variant; the light variant's AA is verified
+  // separately once its palette is finalized.
   final AurisScheme scheme =
-      AurisTheme.light().extension<AurisScheme>()!;
+      AurisTheme.dark().extension<AurisScheme>()!;
 
   // The three surfaces a primary foreground can be drawn on.
   final Map<String, Color> surfaces = <String, Color>{

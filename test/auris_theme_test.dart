@@ -4,14 +4,14 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('AurisTheme.light', () {
-    test('builds a dark ThemeData carrying an AurisScheme extension', () {
+    test('builds a light ThemeData carrying an AurisScheme extension', () {
       final ThemeData theme = AurisTheme.light();
 
-      expect(theme.brightness, Brightness.dark);
+      expect(theme.brightness, Brightness.light);
 
       final AurisScheme? scheme = theme.extension<AurisScheme>();
       expect(scheme, isNotNull);
-      expect(scheme!.brightness, Brightness.dark);
+      expect(scheme!.brightness, Brightness.light);
     });
 
     test('derives the ColorScheme from the resolved scheme', () {
@@ -47,8 +47,28 @@ void main() {
   });
 
   group('AurisTheme.dark', () {
-    test('throws UnimplementedError (reserved for the future variant)', () {
-      expect(AurisTheme.dark, throwsUnimplementedError);
+    test('builds the dark (amber-on-near-black) theme', () {
+      final ThemeData theme = AurisTheme.dark();
+      expect(theme.brightness, Brightness.dark);
+      expect(theme.colorScheme.primary, AurisTokens.gold);
+      expect(theme.scaffoldBackgroundColor, AurisTokens.void_);
+    });
+  });
+
+  group('AurisTheme.light builds the light variant', () {
+    test('is a light-brightness theme with light surfaces and dark text', () {
+      final ThemeData theme = AurisTheme.light();
+      final AurisScheme scheme = theme.extension<AurisScheme>()!;
+      expect(theme.brightness, Brightness.light);
+      expect(scheme.brightness, Brightness.light);
+      // Page is light and text is dark (inverted from the dark variant).
+      expect(scheme.surfacePage.computeLuminance(), greaterThan(0.5));
+      expect(scheme.textBright.computeLuminance(), lessThan(0.2));
+      // Depth on light is a teal glow (a brightened accent), not amber: blue and
+      // green dominate red, the opposite of the dark variant's amber glow.
+      final Color glowColor = scheme.depthActive.glow.first.color;
+      expect(glowColor.b, greaterThan(glowColor.r));
+      expect(glowColor.g, greaterThan(glowColor.r));
     });
   });
 
@@ -61,11 +81,11 @@ void main() {
       expect(scheme.primaryActive, AurisTokens.gold);
     });
 
-    test('requesting a non-dark brightness is unsupported in v0.1.0', () {
-      expect(
-        () => AurisScheme.resolve(brightness: Brightness.light),
-        throwsUnsupportedError,
-      );
+    test('resolves the light branch', () {
+      final AurisScheme scheme =
+          AurisScheme.resolve(brightness: Brightness.light);
+      expect(scheme.brightness, Brightness.light);
+      expect(scheme.surfacePage.computeLuminance(), greaterThan(0.5));
     });
 
     test('bevel and glow overrides scale the resolved roles', () {

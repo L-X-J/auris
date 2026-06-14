@@ -266,6 +266,162 @@ void main() {
     File('${outDir.path}/glow_compare.png').writeAsBytesSync(png!);
   });
 
+  // The three candidate light palettes on a representative widget gallery.
+  const List<String> lightNames = <String>['light_cyan'];
+  for (int variant = 0; variant < lightNames.length; variant++) {
+    testWidgets(lightNames[variant], (WidgetTester tester) async {
+      final Directory outDir = Directory('/tmp/auris_renders')
+        ..createSync(recursive: true);
+      tester.view.physicalSize = const Size(1200, 1500);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      await _loadFonts();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          debugShowCheckedModeBanner: false,
+          theme: AurisTheme.light(),
+          home: Builder(
+            builder: (BuildContext context) {
+              final ThemeData theme = Theme.of(context);
+              final AurisScheme scheme = theme.extension<AurisScheme>()!;
+              return Scaffold(
+                backgroundColor: scheme.surfacePage,
+                body: RepaintBoundary(
+                  key: const ValueKey<String>('shot'),
+                  child: ColoredBox(
+                    color: scheme.surfacePage,
+                    child: Padding(
+                      padding: const EdgeInsets.all(36),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(
+                            'SYSTEM ONLINE',
+                            style: theme.textTheme.displaySmall,
+                          ),
+                          Text(
+                            'Augmentation-era HUD, daylight build.',
+                            style: theme.textTheme.bodyMedium,
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: <Widget>[
+                              FilledButton(
+                                onPressed: () {},
+                                child: const Text('ENGAGE'),
+                              ),
+                              const SizedBox(width: 10),
+                              OutlinedButton(
+                                onPressed: () {},
+                                child: const Text('STANDBY'),
+                              ),
+                              const SizedBox(width: 10),
+                              TextButton(
+                                onPressed: () {},
+                                child: const Text('DETAILS'),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          AurisPanel(
+                            title: 'REACTOR CORE',
+                            accent: true,
+                            child: Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Text(
+                                'Accent panel — glowing cyan border + bloom.',
+                                style: theme.textTheme.bodyMedium,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: <Widget>[
+                              AurisSwitch(
+                                value: true,
+                                onChanged: (_) {},
+                                label: 'SHIELDS',
+                              ),
+                              const SizedBox(width: 24),
+                              AurisSwitch(
+                                value: false,
+                                onChanged: (_) {},
+                                label: 'CLOAK',
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          const Row(
+                            children: <Widget>[
+                              AurisStatCard(
+                                label: 'THROUGHPUT',
+                                value: '94.2',
+                                unit: 'GB/s',
+                              ),
+                              SizedBox(width: 12),
+                              AurisStatCard(
+                                label: 'LATENCY',
+                                value: '12',
+                                unit: 'ms',
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          const AurisProgressBar(value: 0.6, label: 'POWER'),
+                          const SizedBox(height: 16),
+                          const Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: <Widget>[
+                              AurisBadge(
+                                'ONLINE',
+                                variant: AurisBadgeVariant.success,
+                              ),
+                              AurisBadge(
+                                'ARMED',
+                                variant: AurisBadgeVariant.gold,
+                              ),
+                              AurisBadge(
+                                'SYNC',
+                                variant: AurisBadgeVariant.slate,
+                              ),
+                              AurisBadge(
+                                'FAULT',
+                                variant: AurisBadgeVariant.danger,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          const TextField(
+                            decoration: InputDecoration(labelText: 'ACCESS KEY'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 400));
+      final RenderRepaintBoundary boundary = tester.renderObject(
+        find.byKey(const ValueKey<String>('shot')),
+      );
+      final Uint8List? png = await tester.runAsync(() async {
+        final ui.Image image = await boundary.toImage(pixelRatio: 1.6);
+        final ByteData? bytes =
+            await image.toByteData(format: ui.ImageByteFormat.png);
+        return bytes!.buffer.asUint8List();
+      });
+      File('${outDir.path}/${lightNames[variant]}.png')
+          .writeAsBytesSync(png!);
+    });
+  }
+
   // Same display word at w700 / w600 / w500 so the weight step is visible.
   testWidgets('weights_compare', (WidgetTester tester) async {
     final Directory outDir = Directory('/tmp/auris_renders')

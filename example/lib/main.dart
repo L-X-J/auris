@@ -66,24 +66,35 @@ class _AurisExampleAppState extends State<AurisExampleApp> {
   Color? _accent = _accentOptions.first.color;
   double _bevelScale = 1.0;
   double _glowScale = 1.0;
+  Brightness _brightness = Brightness.dark;
 
   @override
   Widget build(BuildContext context) {
+    final ThemeData theme = _brightness == Brightness.light
+        ? AurisTheme.light(
+            accent: _accent,
+            bevelScale: _bevelScale,
+            glowScale: _glowScale,
+          )
+        : AurisTheme.dark(
+            accent: _accent,
+            bevelScale: _bevelScale,
+            glowScale: _glowScale,
+          );
     return MaterialApp(
       title: 'Auris — Core Controls',
       debugShowCheckedModeBanner: false,
-      theme: AurisTheme.light(
-        accent: _accent,
-        bevelScale: _bevelScale,
-        glowScale: _glowScale,
-      ),
+      theme: theme,
       home: _ShowcaseScreen(
         accent: _accent,
         bevelScale: _bevelScale,
         glowScale: _glowScale,
+        brightness: _brightness,
         onAccentChanged: (Color? c) => setState(() => _accent = c),
         onBevelChanged: (double v) => setState(() => _bevelScale = v),
         onGlowChanged: (double v) => setState(() => _glowScale = v),
+        onBrightnessChanged: (Brightness b) =>
+            setState(() => _brightness = b),
       ),
     );
   }
@@ -94,17 +105,21 @@ class _ShowcaseScreen extends StatefulWidget {
     required this.accent,
     required this.bevelScale,
     required this.glowScale,
+    required this.brightness,
     required this.onAccentChanged,
     required this.onBevelChanged,
     required this.onGlowChanged,
+    required this.onBrightnessChanged,
   });
 
   final Color? accent;
   final double bevelScale;
   final double glowScale;
+  final Brightness brightness;
   final ValueChanged<Color?> onAccentChanged;
   final ValueChanged<double> onBevelChanged;
   final ValueChanged<double> onGlowChanged;
+  final ValueChanged<Brightness> onBrightnessChanged;
 
   @override
   State<_ShowcaseScreen> createState() => _ShowcaseScreenState();
@@ -215,9 +230,11 @@ class _ShowcaseScreenState extends State<_ShowcaseScreen> {
                   accent: widget.accent,
                   bevelScale: widget.bevelScale,
                   glowScale: widget.glowScale,
+                  brightness: widget.brightness,
                   onAccentChanged: widget.onAccentChanged,
                   onBevelChanged: widget.onBevelChanged,
                   onGlowChanged: widget.onGlowChanged,
+                  onBrightnessChanged: widget.onBrightnessChanged,
                 ),
                 const SizedBox(height: 32),
 
@@ -1123,17 +1140,21 @@ class _CustomizationControl extends StatelessWidget {
     required this.accent,
     required this.bevelScale,
     required this.glowScale,
+    required this.brightness,
     required this.onAccentChanged,
     required this.onBevelChanged,
     required this.onGlowChanged,
+    required this.onBrightnessChanged,
   });
 
   final Color? accent;
   final double bevelScale;
   final double glowScale;
+  final Brightness brightness;
   final ValueChanged<Color?> onAccentChanged;
   final ValueChanged<double> onBevelChanged;
   final ValueChanged<double> onGlowChanged;
+  final ValueChanged<Brightness> onBrightnessChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -1145,6 +1166,25 @@ class _CustomizationControl extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
+        label('MODE'),
+        const SizedBox(height: 8),
+        SegmentedButton<Brightness>(
+          showSelectedIcon: false,
+          segments: const <ButtonSegment<Brightness>>[
+            ButtonSegment<Brightness>(
+              value: Brightness.dark,
+              label: Text('DARK'),
+            ),
+            ButtonSegment<Brightness>(
+              value: Brightness.light,
+              label: Text('LIGHT'),
+            ),
+          ],
+          selected: <Brightness>{brightness},
+          onSelectionChanged: (Set<Brightness> s) =>
+              onBrightnessChanged(s.first),
+        ),
+        const SizedBox(height: 16),
         label('ACCENT'),
         const SizedBox(height: 8),
         Wrap(
