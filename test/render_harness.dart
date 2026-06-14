@@ -257,6 +257,92 @@ void main() {
     File('${outDir.path}/glow_compare.png').writeAsBytesSync(png!);
   });
 
+  // Title + buttons + segmented control, to judge label text weight.
+  testWidgets('typography', (WidgetTester tester) async {
+    final Directory outDir = Directory('/tmp/auris_renders')
+      ..createSync(recursive: true);
+    tester.view.physicalSize = const Size(1200, 700);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await _loadFonts();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: AurisTheme.light(),
+        home: Builder(
+          builder: (BuildContext context) {
+            final ThemeData theme = Theme.of(context);
+            final AurisScheme scheme = theme.extension<AurisScheme>()!;
+            return Scaffold(
+              backgroundColor: scheme.surfacePage,
+              body: RepaintBoundary(
+                key: const ValueKey<String>('shot'),
+                child: ColoredBox(
+                  color: scheme.surfacePage,
+                  child: Padding(
+                    padding: const EdgeInsets.all(40),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          'AURIS // CORE CONTROLS',
+                          style: theme.textTheme.titleLarge,
+                        ),
+                        const SizedBox(height: 20),
+                        Row(
+                          children: <Widget>[
+                            FilledButton(
+                              onPressed: () {},
+                              child: const Text('ENGAGE'),
+                            ),
+                            const SizedBox(width: 12),
+                            OutlinedButton(
+                              onPressed: () {},
+                              child: const Text('STANDBY'),
+                            ),
+                            const SizedBox(width: 12),
+                            TextButton(
+                              onPressed: () {},
+                              child: const Text('DETAILS'),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        SegmentedButton<int>(
+                          showSelectedIcon: false,
+                          segments: const <ButtonSegment<int>>[
+                            ButtonSegment<int>(value: 0, label: Text('TIGHT')),
+                            ButtonSegment<int>(value: 1, label: Text('NORMAL')),
+                            ButtonSegment<int>(value: 2, label: Text('BOLD')),
+                          ],
+                          selected: const <int>{1},
+                          onSelectionChanged: (_) {},
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 400));
+    final RenderRepaintBoundary boundary = tester.renderObject(
+      find.byKey(const ValueKey<String>('shot')),
+    );
+    final Uint8List? png = await tester.runAsync(() async {
+      final ui.Image image = await boundary.toImage(pixelRatio: 2.5);
+      final ByteData? bytes =
+          await image.toByteData(format: ui.ImageByteFormat.png);
+      return bytes!.buffer.asUint8List();
+    });
+    File('${outDir.path}/typography.png').writeAsBytesSync(png!);
+  });
+
   // Continuous vs stepped (divisions:10) slider — the stepped track should show
   // one cell per step.
   testWidgets('sliders', (WidgetTester tester) async {

@@ -217,7 +217,9 @@ abstract final class AurisTheme {
       // Title — Rajdhani.
       titleLarge: TextStyle(
         fontFamily: AurisTokens.fontDisplay,
-        fontWeight: FontWeight.w600,
+        // w500 (Rajdhani Medium, a real bundled weight) reads a touch lighter
+        // than the w600 SemiBold, which felt slightly heavy at this size.
+        fontWeight: FontWeight.w500,
         fontSize: 22,
         height: 1.27,
         letterSpacing: AurisTokens.trackingLabel,

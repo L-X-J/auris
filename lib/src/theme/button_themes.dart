@@ -39,7 +39,9 @@ abstract final class AurisButtonThemes {
   /// gold-on-gold). A baked-in color would override foregroundColor.
   static const TextStyle _labelStyle = TextStyle(
     fontFamily: AurisTokens.fontBody,
-    fontWeight: FontWeight.w600,
+    // w500, not w600: only Exo 2 Regular is bundled, so a heavier weight is
+    // synthesized (faux-bold) and reads chunky with the wide button tracking.
+    fontWeight: FontWeight.w500,
     fontSize: 14,
     letterSpacing: AurisTokens.trackingButton,
   );
