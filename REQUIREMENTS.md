@@ -142,7 +142,8 @@ Each criterion is observable from the product's visible surface.
 - **Zero runtime dependencies** — Flutter SDK only.
 - **Material 3** on Flutter ≥ 3.22 / Dart ≥ 3.4.
 - **Dark and light variants** ship in v0.1.0: the canonical amber-on-near-black
-  dark theme and a clean technical light theme (glowing teal accent), both from
+  dark theme and a clean technical light theme (same amber accent, adjusted for
+  light), both from
   one resolver via a `Brightness` seam. A *higher-contrast* variant remains an
   anticipated future requirement the design must not preclude.
 - **Font licensing** — fonts may be bundled only if legally redistributable.

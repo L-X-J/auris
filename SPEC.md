@@ -56,12 +56,14 @@ components and custom widgets alike, through one mechanism instead of two.
 
 **Variants.** Both variants are implemented and honestly named:
 `AurisTheme.dark()` is the canonical amber-on-near-black look, and
-`AurisTheme.light()` is a clean, technical light-background variant — cool
-light-grey surfaces, white panels, dark slate text, and a deep-teal accent whose
-glow is a brightened teal (amber glow does not read on a pale surface; see
-§spec:scheme "Depth as a role"). Both are the same resolution with a different
-`Brightness` input (§spec:scheme) and accept the same accent/bevel/glow
-overrides. The earlier `light()`-returns-dark misnomer is resolved.
+`AurisTheme.light()` is a clean, technical light-background variant that keeps
+the same amber identity — light neutral surfaces, dark warm text, and the amber
+accent **darkened for AA on light** (not a different hue) with a brightened-amber
+glow pushed hard enough to read on a light surface (see §spec:scheme "Depth as a
+role"). The two variants are the same colors with lightness/contrast inverted —
+one resolution with a different `Brightness` input (§spec:scheme) — and accept
+the same accent/bevel/glow overrides. The earlier `light()`-returns-dark misnomer
+is resolved.
 
 ---
 
@@ -226,9 +228,9 @@ light variant land as an added branch rather than a consumer rewrite.
 **Depth as a role.** Consumers request depth by intent (e.g. "active
 elevation"), and the scheme resolves that intent to a concrete cue. The dark
 variant resolves it to amber glow (the `glow*` primitives); the light variant
-resolves the *same intent* to a teal glow (a brightened accent), since amber
-glow on a pale surface is nearly invisible and a saturated cool glow reads. The
-cue color/strength is a property of the resolved scheme, so no widget changes
+resolves the *same intent* to a brightened-amber glow at a higher alpha, since a
+glow has to be pushed harder to read against a light surface. The cue
+color/strength is a property of the resolved scheme, so no widget changes
 between variants — they request "active depth" and get whatever each variant
 resolves it to.
 
@@ -529,7 +531,8 @@ Cites: §req:constraints, §req:priorities
 
 **Light variant — now implemented.** Originally deferred, the light-background
 variant landed early via the brightness seam (§spec:scheme): a clean technical
-light theme with a glowing teal accent (§spec:overview "Variants"). It is an
+light theme that keeps the amber identity, adjusted for light (§spec:overview
+"Variants"). It is an
 additive resolver branch — the dark variant is unchanged. A *higher-contrast*
 variant remains anticipated future work on the same seam.
 

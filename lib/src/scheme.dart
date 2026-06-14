@@ -109,12 +109,11 @@ class AurisBevelScale {
   }
 }
 
-/// The light-variant palette: a clean, technical light theme with a glowing
-/// teal accent (cool-grey surfaces, white panels, dark slate text). It mirrors
-/// the dark variant's structure — a deep [accent] that clears AA for
-/// text/borders, plus a vibrant [accentHi] for the focus highlight; the glow is
-/// a brightened [accent] (so it matches what it glows) rather than amber, which
-/// would not read on a cool-light surface.
+/// The light-variant palette: a clean, technical light theme that keeps the
+/// kit's amber identity (light neutral surfaces, dark warm text, an amber accent
+/// darkened for AA). It mirrors the dark variant's structure — a deep [accent]
+/// that clears AA for text/borders, plus a brighter [accentHi] for the focus
+/// highlight; the glow is a brightened [accent] (so it matches what it glows).
 @immutable
 class _LightPalette {
   const _LightPalette({
@@ -158,22 +157,25 @@ class _LightPalette {
   final Color secondaryDim;
 }
 
-/// The light variant: a clean, technical light theme — cool light-grey page,
-/// white panels, dark slate text, a deep-teal accent that clears AA, and a
-/// brightened-teal glow on the data/active elements.
+/// The light variant: the SAME Auris colors as dark, with lightness/contrast
+/// inverted for a light surface — light neutral surfaces, dark warm text, the
+/// amber/gold accent darkened to a bronze that clears AA on light, and the slate
+/// secondary kept. The accent keeps its amber hue (it is not a different color);
+/// the glow is a brightened amber derived from the active accent, strong enough
+/// to read on a light surface.
 const _LightPalette _lightPalette = _LightPalette(
-  page: Color(0xFFECEFF2),
-  panel: Color(0xFFFFFFFF),
-  inset: Color(0xFFF3F6F8),
-  textHi: Color(0xFF1B2730),
-  textMid: Color(0xFF50606D),
-  textDim: Color(0xFF9DAAB6),
-  accent: Color(0xFF0B6E80),
-  accentDim: Color(0xFF4E818D),
-  accentHi: Color(0xFF18C4DC),
-  onAccent: Color(0xFFFFFFFF),
-  border: Color(0xFFD7DEE4),
-  borderBright: Color(0xFFB4C1CB),
+  page: Color(0xFFECEDEF),
+  panel: Color(0xFFFBFBFC),
+  inset: Color(0xFFF3F3F5),
+  textHi: Color(0xFF221F18),
+  textMid: Color(0xFF595446),
+  textDim: Color(0xFF9C968A),
+  accent: Color(0xFF8A5E00),
+  accentDim: Color(0xFFB0883C),
+  accentHi: Color(0xFFE6A422),
+  onAccent: Color(0xFFFBFBFC),
+  border: Color(0xFFDAD7CE),
+  borderBright: Color(0xFFBEB7A4),
   secondary: Color(0xFF3E6B78),
   secondaryDim: Color(0xFF7FA0AB),
 );
@@ -456,11 +458,11 @@ class AurisScheme extends ThemeExtension<AurisScheme> {
   }
 
   /// Resolve the light variant from a candidate [p] palette — a clean technical
-  /// light theme with a glowing cyan accent. The look mirrors the dark variant's
-  /// structure (a deep accent that clears AA, a vibrant highlight used for the
-  /// glow), so depth stays the same amber-replaced-by-cyan *glow* channel rather
-  /// than a flat drop shadow: a saturated cyan glow reads on a cool-light surface
-  /// where amber would not (§spec:scheme "Depth as a role").
+  /// light theme that keeps the amber identity. The look mirrors the dark
+  /// variant's structure (a deep accent that clears AA, a brighter highlight),
+  /// so depth stays the same *glow* channel rather than a flat drop shadow; the
+  /// glow is a brightened amber pushed hard enough to read on a light surface
+  /// (§spec:scheme "Depth as a role").
   static AurisScheme _resolveLight(
     _LightPalette p, {
     required Color? accent,
@@ -482,8 +484,8 @@ class AurisScheme extends ThemeExtension<AurisScheme> {
           );
 
     // The glow color is a brightened version of whatever it glows (same hue,
-    // raised lightness) rather than a separate electric cyan, so a glowing value
-    // reads as the teal text emitting light instead of a mismatched halo.
+    // raised lightness), so a glowing value reads as the accent emitting light
+    // and the glow always matches whatever accent is active.
     Color brighten(Color c, double byLightness) {
       final HSLColor h = HSLColor.fromColor(c);
       return h.withLightness((h.lightness + byLightness).clamp(0.0, 1.0)).toColor();
@@ -534,9 +536,8 @@ class AurisScheme extends ThemeExtension<AurisScheme> {
         lg: AurisTokens.bevelLg * bevelScale,
         xl: AurisTokens.bevelXl * bevelScale,
       ),
-      // Cyan glow (the vibrant highlight) instead of the dark variant's amber —
-      // pushed harder than on dark because a colored glow has to fight a bright
-      // surface to read as a bloom.
+      // Amber glow (brightened accent), pushed harder than on dark because the
+      // glow has to fight a bright surface to read as a bloom.
       depthResting: AurisDepth.none,
       depthSubtle: AurisDepth(
         glow: glow(primaryGlow, 0.5, 7, 0),

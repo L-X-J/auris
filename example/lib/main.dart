@@ -21,10 +21,9 @@ class _AccentOption {
 /// ramp plus a cool teal, a magenta, and a green, so flipping the control
 /// re-skins every themed Material widget AND every Auris custom widget at once.
 const List<_AccentOption> _accentOptions = <_AccentOption>[
-  // null = no override → the active theme's native accent (gold on dark, the
-  // deep teal on light). Labelled DEFAULT, not AMBER, because the default accent
-  // differs by variant.
-  _AccentOption('DEFAULT', null),
+  // null = no override → the kit's amber accent: bright gold on dark, the same
+  // amber darkened to a bronze on light (same hue, adjusted lightness).
+  _AccentOption('AMBER', null),
   _AccentOption('TEAL', Color(0xFF35E0C0)),
   _AccentOption('MAGENTA', Color(0xFFE048B0)),
   _AccentOption('GREEN', Color(0xFF6AD050)),
@@ -1287,10 +1286,10 @@ class _AccentSwatch extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AurisScheme scheme = Theme.of(context).extension<AurisScheme>()!;
-    // The swatch shows the accent it selects. For the DEFAULT (no-override)
-    // option that is the active variant's NATIVE accent — gold on dark, the deep
-    // teal on light — resolved fresh for the current brightness so it neither
-    // follows the live selection nor hardcodes gold (which lied in light mode).
+    // The swatch shows the accent it selects. For the AMBER (no-override) option
+    // that is the kit's native accent — bright gold on dark, the bronze-amber on
+    // light — resolved fresh for the current brightness so it tracks the variant
+    // (same hue, adjusted lightness) without following the live selection.
     final Color swatch = option.color ??
         AurisScheme.resolve(brightness: Theme.of(context).brightness)
             .primaryActive;

@@ -64,11 +64,11 @@ void main() {
       // Page is light and text is dark (inverted from the dark variant).
       expect(scheme.surfacePage.computeLuminance(), greaterThan(0.5));
       expect(scheme.textBright.computeLuminance(), lessThan(0.2));
-      // Depth on light is a teal glow (a brightened accent), not amber: blue and
-      // green dominate red, the opposite of the dark variant's amber glow.
+      // Depth on light is an amber glow (a brightened accent): warm, red ≥ green
+      // ≫ blue, the kit's identity kept rather than swapped for another hue.
       final Color glowColor = scheme.depthActive.glow.first.color;
-      expect(glowColor.b, greaterThan(glowColor.r));
-      expect(glowColor.g, greaterThan(glowColor.r));
+      expect(glowColor.r, greaterThan(glowColor.b));
+      expect(glowColor.g, greaterThan(glowColor.b));
     });
   });
 

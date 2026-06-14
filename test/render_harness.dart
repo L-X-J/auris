@@ -271,7 +271,7 @@ void main() {
   // is fully accent-configurable (the glow follows the override too).
   const List<({String name, Color? accent})> lightGalleries =
       <({String name, Color? accent})>[
-    (name: 'light_cyan', accent: null),
+    (name: 'light_amber', accent: null),
     (name: 'light_accent_magenta', accent: Color(0xFFE048B0)),
   ];
   for (int variant = 0; variant < lightGalleries.length; variant++) {
