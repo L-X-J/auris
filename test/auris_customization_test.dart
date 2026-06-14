@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:auris/auris.dart';
+import 'package:auris/auris_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -180,12 +181,52 @@ void main() {
       final AurisScheme base = AurisScheme.resolve();
       for (final Color accent in accents) {
         final AurisScheme s = AurisScheme.resolve(accent: accent);
-        // The cast actually shifts (cohesion): tinted bright text differs from
-        // the canonical warm token.
+        // The cast actually shifts (cohesion): tinted bright text and the
+        // neutral border role differ from the canonical warm tokens.
         expect(s.textBright, isNot(base.textBright));
+        expect(s.borderBright, isNot(base.borderBright));
         // …but primary text still clears AA (4.5:1) on the page surface.
         expect(contrast(s.textBright, s.surfacePage), greaterThanOrEqualTo(4.5));
       }
+    });
+
+    // Guards the propagation invariant for a widget that synthesizes its OWN
+    // glow outside the depth tokens (§spec:customization "Propagation
+    // invariant"): the accent bar's glow must honor the glow override, not bake
+    // a constant. This is the exact leak the invariant exists to prevent.
+    testWidgets('a custom-shaped glow (notification bar) honors glowScale', (
+      WidgetTester tester,
+    ) async {
+      Future<double> barGlowAlpha(double glowScale) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: AurisTheme.light(glowScale: glowScale),
+            home: const Scaffold(
+              body: AurisNotification(
+                variant: AurisNotificationVariant.info,
+                title: 'TEST',
+              ),
+            ),
+          ),
+        );
+        // Let MaterialApp's implicit theme-change animation settle, else a
+        // second call samples the previous theme mid-tween.
+        await tester.pump(const Duration(milliseconds: 400));
+        // Take the strongest glow alpha across the tree so the assertion does
+        // not depend on which shadowed box is first in paint order.
+        final double maxAlpha = tester
+            .widgetList<DecoratedBox>(find.byType(DecoratedBox))
+            .map((DecoratedBox b) => b.decoration)
+            .whereType<BoxDecoration>()
+            .expand((BoxDecoration d) => d.boxShadow ?? const <BoxShadow>[])
+            .map((BoxShadow s) => s.color.a)
+            .fold(0.0, (double m, double a) => a > m ? a : m);
+        return maxAlpha;
+      }
+
+      final double dim = await barGlowAlpha(0.5);
+      final double bright = await barGlowAlpha(2.0);
+      expect(bright, greaterThan(dim));
     });
   });
 }
