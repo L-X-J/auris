@@ -31,18 +31,24 @@ class AurisDepth {
   /// read.
   final Color? insetColor;
 
-  /// Scales the resolved glow blur/spread by [factor] (the glow intensity
-  /// override). A [factor] of 1 returns this depth unchanged.
+  /// Scales the resolved glow by [factor] (the glow intensity override): the
+  /// blur *reach* and the alpha *strength* grow with the factor, while the
+  /// negative spread is held constant. Scaling the spread in step would pull the
+  /// halo back in as fast as the blur pushed it out, so the glow looked
+  /// unchanged between settings — holding spread fixed makes the intensity knob
+  /// actually visible. A [factor] of 1 returns this depth unchanged.
   AurisDepth scaled(double factor) {
     if (factor == 1 || glow.isEmpty) return this;
     return AurisDepth(
       glow: <BoxShadow>[
         for (final BoxShadow s in glow)
           BoxShadow(
-            color: s.color,
+            color: s.color.withValues(
+              alpha: (s.color.a * factor).clamp(0.0, 1.0),
+            ),
             offset: s.offset,
             blurRadius: s.blurRadius * factor,
-            spreadRadius: s.spreadRadius * factor,
+            spreadRadius: s.spreadRadius,
             blurStyle: s.blurStyle,
           ),
       ],
@@ -301,13 +307,13 @@ class AurisScheme extends ThemeExtension<AurisScheme> {
     // verbatim. textDim is decorative-only either way.
     final Color textBright = accent == null
         ? AurisTokens.brightWhite
-        : Color.alphaBlend(active.withValues(alpha: 0.10), AurisTokens.brightWhite);
+        : Color.alphaBlend(active.withValues(alpha: 0.18), AurisTokens.brightWhite);
     final Color textMid = accent == null
         ? AurisTokens.textMid
-        : Color.alphaBlend(active.withValues(alpha: 0.20), AurisTokens.textMid);
+        : Color.alphaBlend(active.withValues(alpha: 0.42), AurisTokens.textMid);
     final Color textDim = accent == null
         ? AurisTokens.textDim
-        : Color.alphaBlend(active.withValues(alpha: 0.20), AurisTokens.textDim);
+        : Color.alphaBlend(active.withValues(alpha: 0.42), AurisTokens.textDim);
 
     return AurisScheme(
       brightness: Brightness.dark,

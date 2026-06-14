@@ -157,14 +157,15 @@ abstract final class AurisTokens {
     ),
   ];
 
-  /// Active glow — a single tight amber blur hugging the element. The negative
-  /// spread is large relative to the blur so the halo stays close to the edge
-  /// rather than spilling across the layout, especially on small markers.
+  /// Active glow — a single tight amber blur hugging the element. The blur is
+  /// kept small and the spread close to zero so the glow reads as a crisp rim at
+  /// the edge rather than a wide soft wash bleeding under and around the element,
+  /// which looked diffuse on small markers.
   static const List<BoxShadow> glowActive = <BoxShadow>[
     BoxShadow(
       color: Color(0x3DF0A500),
-      blurRadius: 4,
-      spreadRadius: -3,
+      blurRadius: 3,
+      spreadRadius: -1,
     ),
   ];
 

@@ -1212,9 +1212,11 @@ class _AccentSwatch extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AurisScheme scheme = Theme.of(context).extension<AurisScheme>()!;
-    // A null option means "default" — preview it with the current default
-    // primary so the swatch reads as the amber/gold ramp.
-    final Color swatch = option.color ?? scheme.primaryActive;
+    // The swatch always shows the accent it selects, so the default option must
+    // read as the canonical amber/gold even while a different accent is live —
+    // reading scheme.primaryActive would make the AMBER chip follow the current
+    // selection instead of standing for amber.
+    final Color swatch = option.color ?? AurisTokens.gold;
 
     return GestureDetector(
       onTap: onTap,

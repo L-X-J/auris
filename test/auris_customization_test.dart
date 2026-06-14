@@ -49,19 +49,22 @@ void main() {
       expect(bold.bevel.xl, closeTo(base.bevel.xl * 2, 1e-9));
     });
 
-    test('glowScale scales the depth glow blur radius', () {
+    test('glowScale scales blur reach + alpha but holds spread constant', () {
       final AurisScheme base = AurisScheme.resolve();
       final AurisScheme bold = AurisScheme.resolve(glowScale: 2.0);
 
-      final double baseBlur = base.depthActive.glow.single.blurRadius;
-      final double boldBlur = bold.depthActive.glow.single.blurRadius;
-      expect(boldBlur, closeTo(baseBlur * 2, 1e-9));
+      final BoxShadow baseGlow = base.depthActive.glow.single;
+      final BoxShadow boldGlow = bold.depthActive.glow.single;
 
-      // Spread scales too, and the subtle cue scales independently.
-      expect(
-        bold.depthActive.glow.single.spreadRadius,
-        closeTo(base.depthActive.glow.single.spreadRadius * 2, 1e-9),
-      );
+      // Blur reach and alpha grow with the factor…
+      expect(boldGlow.blurRadius, closeTo(baseGlow.blurRadius * 2, 1e-9));
+      expect(boldGlow.color.a, closeTo((baseGlow.color.a * 2).clamp(0.0, 1.0), 1e-9));
+
+      // …but the negative spread is held constant, otherwise the larger spread
+      // would cancel the larger blur and the halo would look unchanged.
+      expect(boldGlow.spreadRadius, closeTo(baseGlow.spreadRadius, 1e-9));
+
+      // The subtle cue scales by the same rule, independently.
       expect(
         bold.depthSubtle.glow.single.blurRadius,
         closeTo(base.depthSubtle.glow.single.blurRadius * 2, 1e-9),
