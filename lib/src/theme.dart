@@ -10,14 +10,17 @@ import 'tokens.dart';
 
 /// Factory for the Auris `ThemeData`.
 ///
-/// [AurisTheme.light] returns a fully specified `ThemeData` whose `ColorScheme`
-/// and full `TextTheme` are DERIVED FROM the resolved [AurisScheme]
-/// (§spec:scheme), with that same scheme attached to `ThemeData.extensions` so
-/// the custom widget library shares the exact resolved values (§spec:theme-layer).
+/// [AurisTheme.dark] returns the canonical amber-on-near-black variant and
+/// [AurisTheme.light] returns the clean technical light-background variant. Both
+/// return a fully specified `ThemeData` whose `ColorScheme` and full `TextTheme`
+/// are DERIVED FROM the resolved [AurisScheme] (§spec:scheme), with that same
+/// scheme attached to `ThemeData.extensions` so the custom widget library shares
+/// the exact resolved values (§spec:theme-layer).
 ///
-/// "light" is a historical misnomer — Auris is always dark in v0.1.0. A genuine
-/// light-background variant is anticipated (§spec:scope); [AurisTheme.dark] is
-/// reserved and throws [UnimplementedError] until it lands.
+/// The two variants are one resolution with a different `Brightness` input and
+/// accept the same accent / bevel / glow overrides (§spec:customization). The
+/// earlier `light()`-returns-dark misnomer is resolved — both are now honestly
+/// named (§spec:overview "Variants").
 ///
 /// This populates `ColorScheme`, `TextTheme`, the core-control component themes
 /// (buttons, input / dropdown decoration, and the selection controls —
@@ -31,7 +34,9 @@ import 'tokens.dart';
 abstract final class AurisTheme {
   const AurisTheme._();
 
-  /// The default (and only implemented) Auris theme — always dark in v0.1.0.
+  /// The clean technical light-background variant — light neutral surfaces and
+  /// dark warm text, keeping the amber identity adjusted for light
+  /// (§spec:overview "Variants"). [AurisTheme.dark] is the canonical variant.
   ///
   /// [accent], [bevelScale], and [glowScale] are optional customization
   /// overrides forwarded to [AurisScheme.resolve]; their defaults reproduce the
