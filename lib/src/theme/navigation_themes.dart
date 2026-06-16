@@ -9,7 +9,8 @@ import '../tokens.dart';
 /// primitives, so a future accent / brightness change re-skins them
 /// automatically (§road:navigation-themes).
 ///
-/// Covered: [AppBar], [NavigationBar], [NavigationRail], and [TabBar].
+/// Covered: [AppBar], [BottomAppBar], [NavigationBar], [BottomNavigationBar],
+/// [NavigationRail], [NavigationDrawer], and [TabBar].
 ///
 /// Signature treatments (§spec:theme-layer):
 ///
@@ -73,6 +74,23 @@ abstract final class AurisNavigationThemes {
   }
 
   // ---------------------------------------------------------------------------
+  // BottomAppBar — panel surface, flat, no drop shadow.
+  // ---------------------------------------------------------------------------
+
+  /// The [BottomAppBarTheme]: a flat panel-surface bar with no Material drop
+  /// shadow. `BottomAppBarTheme.shape` is a `NotchedShape` (for the FAB cradle),
+  /// not an `OutlinedBorder`, so the asymmetric chamfer cannot be applied to its
+  /// silhouette; the surface and flat elevation still carry the aesthetic.
+  static BottomAppBarThemeData bottomAppBar(AurisScheme scheme) {
+    return BottomAppBarThemeData(
+      color: scheme.surfacePanel,
+      surfaceTintColor: Colors.transparent,
+      shadowColor: Colors.transparent,
+      elevation: 0,
+    );
+  }
+
+  // ---------------------------------------------------------------------------
   // NavigationBar — panel surface, chamfered gold indicator, mono labels.
   // ---------------------------------------------------------------------------
 
@@ -96,6 +114,81 @@ abstract final class AurisNavigationThemes {
           return TextStyle(
             fontFamily: AurisTokens.fontMono,
             fontSize: 11,
+            letterSpacing: AurisTokens.trackingLabel,
+            color: color,
+          );
+        },
+      ),
+      iconTheme: WidgetStateProperty.resolveWith<IconThemeData?>(
+        (Set<WidgetState> states) {
+          final Color color = states.contains(WidgetState.selected)
+              ? scheme.primaryActive
+              : scheme.primaryDim;
+          return IconThemeData(color: color, size: 24);
+        },
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // BottomNavigationBar — legacy bottom nav. Panel surface, gold selected,
+  // dim unselected, mono labels.
+  // ---------------------------------------------------------------------------
+
+  /// The [BottomNavigationBarThemeData] for the legacy `BottomNavigationBar`
+  /// (the pre-`NavigationBar` API some apps still use): a flat panel surface
+  /// with a gold selected destination, dim unselected, and monospace uppercase
+  /// labels. The fixed type keeps every label visible.
+  static BottomNavigationBarThemeData bottomNavigationBar(AurisScheme scheme) {
+    return BottomNavigationBarThemeData(
+      backgroundColor: scheme.surfacePanel,
+      elevation: 0,
+      type: BottomNavigationBarType.fixed,
+      selectedItemColor: scheme.primaryActive,
+      unselectedItemColor: scheme.primaryDim,
+      selectedIconTheme: IconThemeData(color: scheme.primaryActive, size: 24),
+      unselectedIconTheme: IconThemeData(color: scheme.primaryDim, size: 24),
+      showUnselectedLabels: true,
+      selectedLabelStyle: TextStyle(
+        fontFamily: AurisTokens.fontMono,
+        fontSize: 11,
+        letterSpacing: AurisTokens.trackingLabel,
+        color: scheme.primaryActive,
+      ),
+      unselectedLabelStyle: TextStyle(
+        fontFamily: AurisTokens.fontMono,
+        fontSize: 11,
+        letterSpacing: AurisTokens.trackingLabel,
+        color: scheme.textMid,
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // NavigationDrawer — panel surface, chamfered gold indicator, mono labels.
+  // ---------------------------------------------------------------------------
+
+  /// The [NavigationDrawerThemeData]: a flat panel surface with a chamfered
+  /// gold-tinted selection indicator and monospace labels that brighten when
+  /// selected — the same indicator treatment as [navigationBar] / [navigationRail]
+  /// so the three nav surfaces read as one family. (The drawer *container* shape
+  /// is set by the [Drawer] theme; this themes the destinations inside it.)
+  static NavigationDrawerThemeData navigationDrawer(AurisScheme scheme) {
+    return NavigationDrawerThemeData(
+      backgroundColor: scheme.surfacePanel,
+      surfaceTintColor: Colors.transparent,
+      shadowColor: Colors.transparent,
+      elevation: 0,
+      indicatorColor: scheme.primaryActive.withValues(alpha: 0.20),
+      indicatorShape: _indicator(scheme),
+      labelTextStyle: WidgetStateProperty.resolveWith<TextStyle?>(
+        (Set<WidgetState> states) {
+          final Color color = states.contains(WidgetState.selected)
+              ? scheme.primaryActive
+              : scheme.textMid;
+          return TextStyle(
+            fontFamily: AurisTokens.fontMono,
+            fontSize: 13,
             letterSpacing: AurisTokens.trackingLabel,
             color: color,
           );

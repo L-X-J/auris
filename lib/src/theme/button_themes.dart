@@ -262,6 +262,44 @@ abstract final class AurisButtonThemes {
   // SegmentedButton — chamfered group, gold-filled selected segment.
   // ---------------------------------------------------------------------------
 
+  // ---------------------------------------------------------------------------
+  // ToggleButtons — the legacy M2 segmented group. Gold selected text/fill,
+  // amber hover, mono-uppercase labels.
+  // ---------------------------------------------------------------------------
+
+  /// The [ToggleButtonsThemeData]: a group whose selected buttons read gold on a
+  /// faint gold fill, unselected buttons read gold-dim, and hover / focus get an
+  /// amber overlay. Unlike [SegmentedButton] (which exposes a `ButtonStyle`),
+  /// `ToggleButtons` colors come from flat color fields and its outer corner is
+  /// a `borderRadius` rather than an arbitrary `OutlinedBorder`, so it cannot
+  /// take the asymmetric chamfer; the radius is still pulled from the scheme's
+  /// medium bevel role so the bevel override reaches it. The roles are read from
+  /// the scheme directly (§spec:scheme).
+  static ToggleButtonsThemeData toggleButtons(AurisScheme scheme) {
+    return ToggleButtonsThemeData(
+      borderColor: scheme.borderBright,
+      selectedBorderColor: scheme.primaryActive,
+      disabledBorderColor:
+          scheme.borderResting.withValues(alpha: _disabledOpacity),
+      color: scheme.primaryActive,
+      selectedColor: scheme.primaryActive,
+      disabledColor: scheme.primaryActive.withValues(alpha: _disabledOpacity),
+      fillColor: scheme.primaryActive.withValues(alpha: 0.16),
+      hoverColor: scheme.primaryActive.withValues(alpha: 0.12),
+      focusColor: scheme.primaryActive.withValues(alpha: 0.20),
+      splashColor: scheme.primaryActive.withValues(alpha: 0.24),
+      borderWidth: 1,
+      // The group's overall silhouette is chamfered; the medium bevel matches
+      // the other button shapes.
+      borderRadius: BorderRadius.all(Radius.circular(scheme.bevel.md)),
+      textStyle: const TextStyle(
+        fontFamily: AurisTokens.fontMono,
+        fontSize: 13,
+        letterSpacing: AurisTokens.trackingLabel,
+      ),
+    );
+  }
+
   /// The [SegmentedButton] theme: chamfered group with a gold-filled selected
   /// segment and amber overlay on the rest.
   static SegmentedButtonThemeData segmented(AurisScheme scheme) {

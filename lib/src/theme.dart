@@ -23,14 +23,18 @@ import 'tokens.dart';
 /// named (§spec:overview "Variants").
 ///
 /// This populates `ColorScheme`, `TextTheme`, the core-control component themes
-/// (buttons, input / dropdown decoration, and the selection controls —
+/// (buttons including toggle buttons, input / dropdown decoration, text
+/// selection, the menu surfaces, and the selection controls —
 /// checkbox / radio / switch / slider / chip), the surface + overlay themes
-/// (card, dialog, snackbar, bottom sheet, drawer, tooltip, popup menu), the
-/// navigation-chrome themes (app bar, navigation bar / rail, tab bar), and the
-/// data + feedback themes (data table, list / expansion tile, progress, divider,
-/// badge, search bar / view). Elevation and shadow defaults reflect the
-/// aesthetic: elevation is `0` and shadows are transparent, so depth reads as
-/// glow rather than drop shadow.
+/// (card, dialog, snackbar, material banner, bottom sheet, drawer, tooltip,
+/// popup menu, date / time picker), the navigation-chrome themes (app bar,
+/// bottom app bar, navigation bar / rail / drawer, bottom navigation bar, tab
+/// bar), and the data + feedback themes (data table, list / expansion tile,
+/// progress, divider, badge, search bar / view, scrollbar, carousel). The set is
+/// defined by a census of every `ThemeData` component-theme slot
+/// (`doc/component-theme-census.md`), not by the showcase. Elevation and shadow
+/// defaults reflect the aesthetic: elevation is `0` and shadows are transparent,
+/// so depth reads as glow rather than drop shadow.
 abstract final class AurisTheme {
   const AurisTheme._();
 
@@ -100,10 +104,14 @@ abstract final class AurisTheme {
       iconButtonTheme: AurisButtonThemes.icon(scheme),
       floatingActionButtonTheme: AurisButtonThemes.fab(scheme),
       segmentedButtonTheme: AurisButtonThemes.segmented(scheme),
-      // Input + dropdown decoration themes.
+      toggleButtonsTheme: AurisButtonThemes.toggleButtons(scheme),
+      // Input + dropdown decoration + menu themes.
       inputDecorationTheme: AurisInputThemes.inputDecoration(scheme),
+      textSelectionTheme: AurisInputThemes.textSelection(scheme),
       dropdownMenuTheme: AurisInputThemes.dropdownMenu(scheme),
       menuButtonTheme: AurisInputThemes.menuButton(scheme),
+      menuTheme: AurisInputThemes.menu(scheme),
+      menuBarTheme: AurisInputThemes.menuBar(scheme),
       // Selection-control component themes.
       checkboxTheme: AurisInputThemes.checkbox(scheme),
       radioTheme: AurisInputThemes.radio(scheme),
@@ -114,14 +122,21 @@ abstract final class AurisTheme {
       cardTheme: AurisOverlayThemes.card(scheme),
       dialogTheme: AurisOverlayThemes.dialog(scheme),
       snackBarTheme: AurisOverlayThemes.snackBar(scheme),
+      bannerTheme: AurisOverlayThemes.banner(scheme),
       bottomSheetTheme: AurisOverlayThemes.bottomSheet(scheme),
       drawerTheme: AurisOverlayThemes.drawer(scheme),
       tooltipTheme: AurisOverlayThemes.tooltip(scheme),
       popupMenuTheme: AurisOverlayThemes.popupMenu(scheme),
+      datePickerTheme: AurisOverlayThemes.datePicker(scheme),
+      timePickerTheme: AurisOverlayThemes.timePicker(scheme),
       // Navigation-chrome component themes.
       appBarTheme: AurisNavigationThemes.appBar(scheme),
+      bottomAppBarTheme: AurisNavigationThemes.bottomAppBar(scheme),
       navigationBarTheme: AurisNavigationThemes.navigationBar(scheme),
+      bottomNavigationBarTheme:
+          AurisNavigationThemes.bottomNavigationBar(scheme),
       navigationRailTheme: AurisNavigationThemes.navigationRail(scheme),
+      navigationDrawerTheme: AurisNavigationThemes.navigationDrawer(scheme),
       tabBarTheme: AurisNavigationThemes.tabBar(scheme),
       // Data + feedback component themes. (Stepper has no ThemeData; it reads
       // the ColorScheme above — see AurisDataThemes docs.)
@@ -133,6 +148,8 @@ abstract final class AurisTheme {
       badgeTheme: AurisDataThemes.badge(scheme),
       searchBarTheme: AurisDataThemes.searchBar(scheme),
       searchViewTheme: AurisDataThemes.searchView(scheme),
+      scrollbarTheme: AurisDataThemes.scrollbar(scheme),
+      carouselViewTheme: AurisDataThemes.carouselView(scheme),
       // Carry the resolved scheme so custom widgets read the exact same values.
       extensions: <ThemeExtension<dynamic>>[scheme],
     );
