@@ -266,16 +266,32 @@ and every component theme are derived from the resolved `AurisScheme`
 `ThemeExtension` so custom widgets share the exact same resolved values. Any
 customization overrides or brightness target flow in through that one scheme,
 so they reach the Material components and the custom widgets identically. Every
-component theme is populated; none is left at its Material 3 default. The
+component theme that styles a visible Material widget is populated; none is left
+at its Material 3 default. Coverage is defined by a **census of `ThemeData`'s
+component-theme slots**, not by the subset the showcase happens to demonstrate —
+a widget a real app reaches for is themed even when the demo never shows it. The
 populated component themes are:
 
 `ColorScheme`, `TextTheme`, `ElevatedButton`, `OutlinedButton`, `TextButton`,
-`FilledButton`, `IconButton`, `FloatingActionButton`, `InputDecoration`,
-`Checkbox`, `Radio`, `Switch`, `Slider`, `Chip`, `Card`, `Dialog`, `SnackBar`,
-`BottomSheet`, `NavigationBar`, `NavigationRail`, `Drawer`, `AppBar`, `TabBar`,
-`Tooltip`, `PopupMenu`, `ListTile`, `ExpansionTile`, `DataTable`,
-`ProgressIndicator`, `Divider`, `Badge`, `DropdownMenu`, `SegmentedButton`,
-`Stepper`, `SearchBar`/`SearchView`.
+`FilledButton`, `IconButton`, `FloatingActionButton`, `SegmentedButton`,
+`ToggleButtons`, `InputDecoration`, text selection (cursor / handles /
+highlight), `Checkbox`, `Radio`, `Switch`, `Slider`, `Chip`, `Card`, `Dialog`,
+`DatePicker`, `TimePicker`, `SnackBar`, `MaterialBanner`, `BottomSheet`,
+`Tooltip`, `PopupMenu`, `Menu` / `MenuBar` (the `MenuAnchor` surfaces),
+`DropdownMenu`, `Scrollbar`, `AppBar`, `BottomAppBar`, `NavigationBar`,
+`BottomNavigationBar`, `NavigationRail`, `Drawer`, `NavigationDrawer`, `TabBar`,
+`ListTile`, `ExpansionTile`, `DataTable`, `ProgressIndicator`, `Divider`,
+`Badge`, `SearchBar` / `SearchView`. `Stepper` has no component-theme slot of its
+own and is covered through the resolved `ColorScheme` instead.
+
+The only `ThemeData` slots deliberately left unset are those that do not style a
+standard visible widget, and each exclusion is recorded so "unset" never means
+"overlooked": the legacy pre-Material-3 button themes (`ButtonTheme` for
+`MaterialButton`, the removed `ButtonBar`), whose widgets Auris does not support;
+`actionIconTheme`, which selects *which* glyph a back / close / drawer button
+shows rather than how it is styled; and the global `iconTheme` /
+`primaryTextTheme` / `primaryIconTheme` defaults, which derive from the
+already-populated `ColorScheme` and `TextTheme`.
 
 **Signature treatments applied across all components:**
 
@@ -307,8 +323,12 @@ themes (dialog, popup, snackbar) cannot attach a glow shadow directly through
 them where it matters, and the rationale is recorded rather than the workaround
 re-specified.
 
-**Verification path.** The showcase (§spec:showcase) renders every component
-above; a reviewer confirms none falls back to default Material styling.
+**Verification path.** Coverage is checked two ways. A component-theme **census**
+enumerates every `ThemeData` slot and marks each one populated or
+excluded-with-reason, so no slot is silently skipped — a widget missing from the
+demo is exactly how a gap hides. The showcase (§spec:showcase) then renders every
+populated component so a reviewer confirms none falls back to default Material
+styling: the census guarantees completeness, the showcase is the visual proof.
 
 ---
 
@@ -501,11 +521,14 @@ to be publication-ready, but v0.1.0 does not publish.
 Cites: §req:success-criteria, §req:user-stories
 
 **Observable behavior.** `example/lib/main.dart` is a single scrollable app
-that demonstrates every component — buttons, badges, inputs, selects, toggles,
-sliders, progress, cards/panels, notifications, data rows + table, navigation,
-chips, dialogs/sheets, terminal (with live-appending lines), stat cards,
-ornaments, and stepper — each section introduced by a monospace uppercase
-amber header.
+that demonstrates every component — buttons (text / outlined / filled /
+elevated / icon / FAB, plus segmented and toggle buttons), badges, inputs,
+selects, menus (`MenuAnchor` / `MenuBar`), toggles, sliders, progress,
+scrollbars, cards/panels, notifications and material banners, data rows + table,
+navigation (app bar, navigation bar, bottom navigation bar, navigation rail,
+drawer and navigation drawer, bottom app bar), chips, date and time pickers,
+dialogs/sheets, terminal (with live-appending lines), stat cards, ornaments, and
+stepper — each section introduced by a monospace uppercase amber header.
 
 **Verification path.** The showcase is how the success criteria are checked end
 to end: a reviewer runs it and confirms (a) no standard component renders as

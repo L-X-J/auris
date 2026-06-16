@@ -51,8 +51,15 @@ Each criterion is observable from the product's visible surface.
    unstyled.
 2. **Complete coverage.** A developer can build a typical app using only
    standard Material widgets and never encounter a "broken"/unstyled
-   component. *Testable:* walk the showcase end to end; every component group
-   is themed.
+   component. Coverage is measured against the **full set of Material components
+   that expose a themeable UI surface** — every `ThemeData` component-theme slot
+   that styles a visible widget — not only the widgets the showcase happens to
+   demonstrate. Widgets a typical app reaches for but a demo can omit (date and
+   time pickers, scrollbars, material banners, bottom app bars, menus,
+   navigation drawers, toggle buttons) are in scope, not afterthoughts.
+   *Testable:* a checklist enumerates every themeable Material component and
+   marks each one populated or deliberately excluded with a reason; none is left
+   silently unaddressed.
 3. **Convincing, recognizable aesthetic.** A single example app visibly
    demonstrates the target look across all component groups, such that an
    evaluator can judge it before adopting. The look is verifiable against its
