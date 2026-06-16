@@ -14,26 +14,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-// Load the bundled fonts so glyphs render for real instead of as Ahem blocks.
-Future<void> _loadFonts() async {
-  final Map<String, List<String>> families = <String, List<String>>{
-    'packages/auris/ShareTechMono': <String>['fonts/ShareTechMono-Regular.ttf'],
-    'packages/auris/Rajdhani': <String>[
-      'fonts/Rajdhani-Medium.ttf',
-      'fonts/Rajdhani-SemiBold.ttf',
-      'fonts/Rajdhani-Bold.ttf',
-    ],
-    'packages/auris/ExoTwo': <String>['fonts/Exo2-Regular.ttf'],
-  };
-  for (final MapEntry<String, List<String>> e in families.entries) {
-    final FontLoader loader = FontLoader(e.key);
-    for (final String path in e.value) {
-      final Uint8List bytes = File(path).readAsBytesSync();
-      loader.addFont(Future<ByteData>.value(ByteData.view(bytes.buffer)));
-    }
-    await loader.load();
-  }
-}
+import 'support/font_loader.dart';
 
 // Pump [child] under [theme], let glow/animation settle, capture the tagged
 // RepaintBoundary and write it to doc/images/<name>.png.
@@ -49,7 +30,7 @@ Future<void> _shoot(
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
-  await _loadFonts();
+  await loadAurisFonts();
 
   await tester.pumpWidget(
     MaterialApp(

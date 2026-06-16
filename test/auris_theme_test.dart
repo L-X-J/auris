@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:auris/auris.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -69,6 +71,93 @@ void main() {
       expect(theme.brightness, Brightness.dark);
       expect(theme.colorScheme.primary, AurisTokens.gold);
       expect(theme.scaffoldBackgroundColor, AurisTokens.void_);
+    });
+  });
+
+  group('font fallback', () {
+    // The bundled fonts are the design intent, but text must still render in a
+    // sensible system font if a bundled font fails to load — so every text role
+    // pairs its family with a fallback chain (§spec:packaging "degrades
+    // gracefully if a font is absent").
+    test('every TextTheme role declares the matching fallback chain', () {
+      final TextTheme text = AurisTheme.dark().textTheme;
+
+      final List<TextStyle?> displayRoles = <TextStyle?>[
+        text.displayLarge,
+        text.displayMedium,
+        text.displaySmall,
+        text.headlineLarge,
+        text.headlineMedium,
+        text.headlineSmall,
+        text.titleLarge,
+        text.titleMedium,
+        text.titleSmall,
+      ];
+      for (final TextStyle? style in displayRoles) {
+        expect(style!.fontFamily, AurisTokens.fontDisplay);
+        expect(style.fontFamilyFallback, AurisTokens.fontDisplayFallback);
+      }
+
+      final List<TextStyle?> bodyRoles = <TextStyle?>[
+        text.bodyLarge,
+        text.bodyMedium,
+        text.bodySmall,
+        text.labelLarge,
+        text.labelMedium,
+        text.labelSmall,
+      ];
+      for (final TextStyle? style in bodyRoles) {
+        expect(style!.fontFamily, AurisTokens.fontBody);
+        expect(style.fontFamilyFallback, AurisTokens.fontBodyFallback);
+      }
+    });
+
+    test('fallback chains end in a generic CSS family the engine can map', () {
+      // The last entry of each chain is a generic family Flutter's engine maps
+      // to a platform font on every OS, so the chain never dead-ends in a name
+      // that might be absent everywhere.
+      expect(AurisTokens.fontDisplayFallback.last, 'sans-serif');
+      expect(AurisTokens.fontBodyFallback.last, 'sans-serif');
+      expect(AurisTokens.fontMonoFallback.last, 'monospace');
+    });
+
+    test('every bundled-font site in lib/ pairs a fallback chain', () {
+      // Invariant guard: the family -> fallback pairing is fixed (display/body
+      // -> sans, mono -> mono), so a `fontFamily: AurisTokens.fontX` line that
+      // omits the matching `fontFamilyFallback:` on the next line would silently
+      // reintroduce the tofu/blank-glyph bug — invisible to the goldens (which
+      // load the real fonts) until a font asset actually fails. Scanning the
+      // source keeps the ~80 hand-maintained pairs honest as new styles land.
+      const Map<String, String> expected = <String, String>{
+        'fontDisplay': 'fontDisplayFallback',
+        'fontBody': 'fontBodyFallback',
+        'fontMono': 'fontMonoFallback',
+      };
+      final RegExp familyLine =
+          RegExp(r'fontFamily: AurisTokens\.(fontDisplay|fontBody|fontMono),');
+
+      final List<String> unpaired = <String>[];
+      for (final FileSystemEntity entity
+          in Directory('lib').listSync(recursive: true)) {
+        if (entity is! File || !entity.path.endsWith('.dart')) continue;
+        final List<String> lines = entity.readAsLinesSync();
+        for (int i = 0; i < lines.length; i++) {
+          final RegExpMatch? m = familyLine.firstMatch(lines[i]);
+          if (m == null) continue;
+          final String wantFallback = expected[m.group(1)]!;
+          final String next = i + 1 < lines.length ? lines[i + 1] : '';
+          if (!next.contains('fontFamilyFallback: AurisTokens.$wantFallback')) {
+            unpaired.add('${entity.path}:${i + 1} -> needs $wantFallback');
+          }
+        }
+      }
+      expect(
+        unpaired,
+        isEmpty,
+        reason: 'Each fontFamily site must be followed by its matching '
+            'fontFamilyFallback so text degrades gracefully:\n'
+            '${unpaired.join('\n')}',
+      );
     });
   });
 
