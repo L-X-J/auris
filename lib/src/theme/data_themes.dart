@@ -10,7 +10,8 @@ import '../tokens.dart';
 /// automatically (§road:data-feedback-themes).
 ///
 /// Covered: [DataTable], [ListTile], [ExpansionTile], [ProgressIndicator],
-/// [Divider], [Badge], and [SearchBar] / [SearchView].
+/// [Divider], [Badge], [SearchBar] / [SearchView], [Scrollbar], and
+/// [CarouselView].
 ///
 /// **Stepper note (§spec:theme-layer).** Flutter exposes no `StepperThemeData`
 /// on `ThemeData`; `Stepper` derives its connector / step-circle colors from the
@@ -262,6 +263,63 @@ abstract final class AurisDataThemes {
         fontSize: 13,
         letterSpacing: AurisTokens.trackingLabel,
         color: scheme.textDim,
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Scrollbar — gold thumb, inset track, slim, square-ish.
+  // ---------------------------------------------------------------------------
+
+  /// The [ScrollbarThemeData]: a gold-dim thumb that brightens to gold on
+  /// hover / drag, on a dim inset track with a resting-border track edge. The
+  /// thumb is slim and only slightly rounded — at a scrollbar's width the
+  /// asymmetric chamfer reads as a notch, so the corner uses the extra-small
+  /// bevel role (so the bevel override still reaches it) rather than the full
+  /// chamfer path.
+  static ScrollbarThemeData scrollbar(AurisScheme scheme) {
+    return ScrollbarThemeData(
+      thumbColor: WidgetStateProperty.resolveWith<Color?>(
+        (Set<WidgetState> states) {
+          if (states.contains(WidgetState.dragged) ||
+              states.contains(WidgetState.hovered)) {
+            return scheme.primaryActive;
+          }
+          return scheme.primaryDim;
+        },
+      ),
+      trackColor: WidgetStatePropertyAll<Color>(scheme.surfaceInset),
+      trackBorderColor: WidgetStatePropertyAll<Color>(scheme.borderResting),
+      thumbVisibility: const WidgetStatePropertyAll<bool>(false),
+      trackVisibility: const WidgetStatePropertyAll<bool>(false),
+      thickness: const WidgetStatePropertyAll<double>(8),
+      radius: Radius.circular(scheme.bevel.xs),
+      interactive: true,
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // CarouselView — chamfered items on the inset surface, flat.
+  // ---------------------------------------------------------------------------
+
+  /// The [CarouselViewThemeData]: chamfered carousel items on the inset surface,
+  /// flat (glow-not-shadow), with an amber hover / press overlay in place of the
+  /// ink splash.
+  static CarouselViewThemeData carouselView(AurisScheme scheme) {
+    return CarouselViewThemeData(
+      backgroundColor: scheme.surfaceInset,
+      elevation: 0,
+      shape: _bevelOutlined(scheme.bevel.md, scheme.borderBright),
+      overlayColor: WidgetStateProperty.resolveWith<Color?>(
+        (Set<WidgetState> states) {
+          if (states.contains(WidgetState.pressed)) {
+            return scheme.primaryActive.withValues(alpha: 0.24);
+          }
+          if (states.contains(WidgetState.hovered)) {
+            return scheme.primaryActive.withValues(alpha: 0.12);
+          }
+          return null;
+        },
       ),
     );
   }

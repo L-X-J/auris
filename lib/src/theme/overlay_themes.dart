@@ -9,8 +9,9 @@ import '../tokens.dart';
 /// primitives, so a future accent / brightness change re-skins them
 /// automatically (§road:surface-overlay-themes).
 ///
-/// Covered: [Card], [Dialog], [SnackBar], [BottomSheet], [Drawer], [Tooltip],
-/// and [PopupMenu].
+/// Covered: [Card], [Dialog], [SnackBar], [MaterialBanner], [BottomSheet],
+/// [Drawer], [Tooltip], [PopupMenu], and the [DatePickerDialog] /
+/// [TimePickerDialog] surfaces.
 ///
 /// Signature treatments applied to every surface (§spec:theme-layer):
 ///
@@ -35,6 +36,11 @@ abstract final class AurisOverlayThemes {
   /// better with an explicit edge (dialogs, menus, sheets).
   static AurisChamferBorder _bevelOutlined(double size, Color color) =>
       AurisChamferBorder(cut: size, side: BorderSide(color: color));
+
+  /// A bare chamfered rectangle (no outline), for the small inner cells inside
+  /// the pickers (calendar days, year tiles, hour / minute fields).
+  static AurisChamferBorder _bevel(double size) =>
+      AurisChamferBorder(cut: size);
 
   // ---------------------------------------------------------------------------
   // Card — panel surface, chamfered, flat, resting outline.
@@ -101,6 +107,33 @@ abstract final class AurisOverlayThemes {
       elevation: 0,
       behavior: SnackBarBehavior.floating,
       shape: _bevelOutlined(scheme.bevel.md, scheme.borderBright),
+      contentTextStyle: TextStyle(
+        fontFamily: AurisTokens.fontMono,
+        fontSize: 13,
+        letterSpacing: AurisTokens.trackingLabel,
+        color: scheme.textBright,
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // MaterialBanner — inset surface, flat, mono content, resting divider.
+  // ---------------------------------------------------------------------------
+
+  /// The [MaterialBannerThemeData]: an inset surface, flat (glow-not-shadow),
+  /// with monospace content and a resting divider below it. The banner's action
+  /// buttons pick up the gold [TextButton] theme automatically.
+  ///
+  /// `MaterialBannerThemeData` has no `shape` slot, so the chamfer cannot be
+  /// applied to the banner itself; the surface + type still carry the aesthetic
+  /// and the divider matches the kit's hairline rules.
+  static MaterialBannerThemeData banner(AurisScheme scheme) {
+    return MaterialBannerThemeData(
+      backgroundColor: scheme.surfaceInset,
+      surfaceTintColor: Colors.transparent,
+      shadowColor: Colors.transparent,
+      dividerColor: scheme.borderResting,
+      elevation: 0,
       contentTextStyle: TextStyle(
         fontFamily: AurisTokens.fontMono,
         fontSize: 13,
@@ -208,6 +241,164 @@ abstract final class AurisOverlayThemes {
             color: color,
           );
         },
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // DatePicker — chamfered dialog, gold selected day, mono labels.
+  // ---------------------------------------------------------------------------
+
+  /// The [DatePickerThemeData]: a chamfered panel dialog, flat, with a gold
+  /// selected day (on near-black), a faint gold today marker, and monospace
+  /// labels. The picker's own text fields inherit the chamfered
+  /// [InputDecorationTheme]; the calendar grid colors are resolved here from the
+  /// scheme so the accent override reaches them.
+  static DatePickerThemeData datePicker(AurisScheme scheme) {
+    return DatePickerThemeData(
+      backgroundColor: scheme.surfacePanel,
+      surfaceTintColor: Colors.transparent,
+      shadowColor: Colors.transparent,
+      elevation: 0,
+      shape: _bevelOutlined(scheme.bevel.xl, scheme.borderBright),
+      headerBackgroundColor: scheme.surfaceInset,
+      headerForegroundColor: scheme.primaryActive,
+      dividerColor: scheme.borderResting,
+      // The selected day reads gold-on-near-black; unselected days use bright
+      // text; disabled days dim. A WidgetStateColor resolves all three.
+      dayForegroundColor: WidgetStateProperty.resolveWith<Color?>(
+        (Set<WidgetState> states) {
+          if (states.contains(WidgetState.disabled)) {
+            return scheme.textDim;
+          }
+          if (states.contains(WidgetState.selected)) {
+            return scheme.onPrimary;
+          }
+          return scheme.textBright;
+        },
+      ),
+      dayBackgroundColor: WidgetStateProperty.resolveWith<Color?>(
+        (Set<WidgetState> states) =>
+            states.contains(WidgetState.selected) ? scheme.primaryActive : null,
+      ),
+      dayOverlayColor: WidgetStatePropertyAll<Color>(
+        scheme.primaryActive.withValues(alpha: 0.12),
+      ),
+      dayShape:
+          WidgetStatePropertyAll<OutlinedBorder>(_bevel(scheme.bevel.xs)),
+      todayForegroundColor:
+          WidgetStatePropertyAll<Color>(scheme.primaryActive),
+      todayBackgroundColor: const WidgetStatePropertyAll<Color>(
+        Colors.transparent,
+      ),
+      todayBorder: BorderSide(color: scheme.primaryActive),
+      yearForegroundColor: WidgetStateProperty.resolveWith<Color?>(
+        (Set<WidgetState> states) =>
+            states.contains(WidgetState.selected)
+                ? scheme.onPrimary
+                : scheme.textBright,
+      ),
+      yearBackgroundColor: WidgetStateProperty.resolveWith<Color?>(
+        (Set<WidgetState> states) =>
+            states.contains(WidgetState.selected) ? scheme.primaryActive : null,
+      ),
+      yearShape:
+          WidgetStatePropertyAll<OutlinedBorder>(_bevel(scheme.bevel.sm)),
+      headerHeadlineStyle: TextStyle(
+        fontFamily: AurisTokens.fontDisplay,
+        fontWeight: FontWeight.w600,
+        fontSize: 30,
+        letterSpacing: AurisTokens.trackingHeading,
+        color: scheme.primaryActive,
+      ),
+      headerHelpStyle: TextStyle(
+        fontFamily: AurisTokens.fontMono,
+        fontSize: 12,
+        letterSpacing: AurisTokens.trackingLabel,
+        color: scheme.primaryActive,
+      ),
+      weekdayStyle: TextStyle(
+        fontFamily: AurisTokens.fontMono,
+        fontSize: 12,
+        letterSpacing: AurisTokens.trackingLabel,
+        color: scheme.textMid,
+      ),
+      dayStyle: const TextStyle(
+        fontFamily: AurisTokens.fontMono,
+        fontSize: 13,
+        letterSpacing: AurisTokens.trackingBody,
+      ),
+      yearStyle: const TextStyle(
+        fontFamily: AurisTokens.fontMono,
+        fontSize: 14,
+        letterSpacing: AurisTokens.trackingBody,
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // TimePicker — chamfered dialog, gold selected dial / field, mono readouts.
+  // ---------------------------------------------------------------------------
+
+  /// The [TimePickerThemeData]: a chamfered panel dialog, flat, with a gold dial
+  /// hand and a gold-tinted selected hour / minute field on the inset surface.
+  /// The roles are resolved from the scheme so the accent override reaches them.
+  static TimePickerThemeData timePicker(AurisScheme scheme) {
+    return TimePickerThemeData(
+      backgroundColor: scheme.surfacePanel,
+      elevation: 0,
+      shape: _bevelOutlined(scheme.bevel.xl, scheme.borderBright),
+      dialBackgroundColor: scheme.surfaceInset,
+      dialHandColor: scheme.primaryActive,
+      dialTextColor: WidgetStateColor.resolveWith(
+        (Set<WidgetState> states) => states.contains(WidgetState.selected)
+            ? scheme.onPrimary
+            : scheme.textBright,
+      ),
+      hourMinuteColor: WidgetStateColor.resolveWith(
+        (Set<WidgetState> states) => states.contains(WidgetState.selected)
+            ? scheme.primaryActive.withValues(alpha: 0.20)
+            : scheme.surfaceInset,
+      ),
+      hourMinuteTextColor: WidgetStateColor.resolveWith(
+        (Set<WidgetState> states) => states.contains(WidgetState.selected)
+            ? scheme.primaryActive
+            : scheme.textBright,
+      ),
+      hourMinuteShape: _bevel(scheme.bevel.sm),
+      dayPeriodColor: WidgetStateColor.resolveWith(
+        (Set<WidgetState> states) => states.contains(WidgetState.selected)
+            ? scheme.primaryActive.withValues(alpha: 0.20)
+            : Colors.transparent,
+      ),
+      dayPeriodTextColor: WidgetStateColor.resolveWith(
+        (Set<WidgetState> states) => states.contains(WidgetState.selected)
+            ? scheme.primaryActive
+            : scheme.textMid,
+      ),
+      dayPeriodBorderSide: BorderSide(color: scheme.borderBright),
+      dayPeriodShape: _bevel(scheme.bevel.sm),
+      entryModeIconColor: scheme.primaryDim,
+      hourMinuteTextStyle: const TextStyle(
+        fontFamily: AurisTokens.fontMono,
+        fontSize: 44,
+        letterSpacing: AurisTokens.trackingBody,
+      ),
+      dayPeriodTextStyle: const TextStyle(
+        fontFamily: AurisTokens.fontMono,
+        fontSize: 14,
+        letterSpacing: AurisTokens.trackingLabel,
+      ),
+      dialTextStyle: const TextStyle(
+        fontFamily: AurisTokens.fontMono,
+        fontSize: 15,
+        letterSpacing: AurisTokens.trackingBody,
+      ),
+      helpTextStyle: TextStyle(
+        fontFamily: AurisTokens.fontMono,
+        fontSize: 12,
+        letterSpacing: AurisTokens.trackingLabel,
+        color: scheme.primaryActive,
       ),
     );
   }

@@ -19,6 +19,10 @@ import '../tokens.dart';
 ///   [Radio], [Switch], [Slider], and [Chip] — gold checked / active,
 ///   suppressed splash replaced by an amber overlay, chamfered where the widget
 ///   allows.
+/// - **Text selection & menus** (§road:add-missing-component-themes):
+///   [TextSelectionThemeData] (gold caret / handles, amber highlight) and the
+///   [MenuAnchor] surfaces — [MenuThemeData] / [MenuBarThemeData], sharing the
+///   chamfered-panel surface style and the [menuButton] row theme.
 abstract final class AurisInputThemes {
   const AurisInputThemes._();
 
@@ -166,6 +170,58 @@ abstract final class AurisInputThemes {
         ),
       ),
     );
+  }
+
+  // ---------------------------------------------------------------------------
+  // TextSelection — gold cursor + handles, amber selection highlight.
+  // ---------------------------------------------------------------------------
+
+  /// The [TextSelectionThemeData]: a gold caret and selection handles with an
+  /// amber selection-highlight wash, so a text field's editing affordances read
+  /// in the kit's accent rather than Material's default blue.
+  static TextSelectionThemeData textSelection(AurisScheme scheme) {
+    return TextSelectionThemeData(
+      cursorColor: scheme.primaryActive,
+      selectionHandleColor: scheme.primaryActive,
+      // The highlight sits behind the glyphs, so it is a low-alpha amber wash —
+      // bright enough to read as a selection, dim enough to keep the text legible.
+      selectionColor: scheme.primaryActive.withValues(alpha: 0.28),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Menu / MenuBar — the MenuAnchor surfaces. Chamfered panel popup, flat menu
+  // bar strip; the row entries reuse the shared menuButton theme.
+  // ---------------------------------------------------------------------------
+
+  /// The chamfered, flat menu-surface style shared by the [MenuAnchor] popup
+  /// ([menu]) and the [MenuBar] strip ([menuBar]): panel surface, bright resting
+  /// outline, no Material elevation / shadow.
+  static MenuStyle _menuSurface(AurisScheme scheme) {
+    return MenuStyle(
+      backgroundColor: WidgetStatePropertyAll<Color>(scheme.surfacePanel),
+      surfaceTintColor: const WidgetStatePropertyAll<Color>(Colors.transparent),
+      shadowColor: const WidgetStatePropertyAll<Color>(Colors.transparent),
+      elevation: const WidgetStatePropertyAll<double>(0),
+      side: WidgetStatePropertyAll<BorderSide>(
+        BorderSide(color: scheme.borderBright),
+      ),
+      shape: WidgetStatePropertyAll<OutlinedBorder>(
+        AurisChamferBorder(cut: scheme.bevel.md),
+      ),
+    );
+  }
+
+  /// The [MenuThemeData] for a [MenuAnchor] popup: a chamfered panel surface,
+  /// flat (glow-not-shadow). The popup rows are styled by [menuButton].
+  static MenuThemeData menu(AurisScheme scheme) {
+    return MenuThemeData(style: _menuSurface(scheme));
+  }
+
+  /// The [MenuBarThemeData] for a top-level [MenuBar]: a flat panel strip with a
+  /// bright resting outline. The top-level menu items are styled by [menuButton].
+  static MenuBarThemeData menuBar(AurisScheme scheme) {
+    return MenuBarThemeData(style: _menuSurface(scheme));
   }
 
   // ---------------------------------------------------------------------------
