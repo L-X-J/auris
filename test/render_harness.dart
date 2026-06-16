@@ -14,6 +14,8 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'support/font_loader.dart';
+
 class _Variant {
   const _Variant(this.name, {this.accent, this.glowScale = 1.0});
   final String name;
@@ -24,31 +26,6 @@ class _Variant {
 /// A persistent controller for the harness scrollbar render (so the same
 /// controller drives both the `Scrollbar` and its `ListView`).
 final ScrollController _harnessScroll = ScrollController();
-
-// Load the bundled fonts so glyphs render for real instead of as Ahem blocks
-// (needed to judge a glyph-hugging glow).
-Future<void> _loadFonts() async {
-  // Multiple files per family so Flutter can pick the right weight (matching the
-  // pubspec). Rajdhani ships Medium/SemiBold/Bold; loading only one made every
-  // weight render the same, hiding weight changes.
-  final Map<String, List<String>> families = <String, List<String>>{
-    'packages/auris/ShareTechMono': <String>['fonts/ShareTechMono-Regular.ttf'],
-    'packages/auris/Rajdhani': <String>[
-      'fonts/Rajdhani-Medium.ttf',
-      'fonts/Rajdhani-SemiBold.ttf',
-      'fonts/Rajdhani-Bold.ttf',
-    ],
-    'packages/auris/ExoTwo': <String>['fonts/Exo2-Regular.ttf'],
-  };
-  for (final MapEntry<String, List<String>> e in families.entries) {
-    final FontLoader loader = FontLoader(e.key);
-    for (final String path in e.value) {
-      final Uint8List bytes = File(path).readAsBytesSync();
-      loader.addFont(Future<ByteData>.value(ByteData.view(bytes.buffer)));
-    }
-    await loader.load();
-  }
-}
 
 void main() {
   const Color teal = Color(0xFF35E0C0);
@@ -66,7 +43,7 @@ void main() {
       tester.view.physicalSize = const Size(1100, 900);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.reset);
-      await _loadFonts();
+      await loadAurisFonts();
 
       await tester.pumpWidget(
         MaterialApp(
@@ -164,7 +141,7 @@ void main() {
     tester.view.physicalSize = const Size(1100, 1500);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
-    await _loadFonts();
+    await loadAurisFonts();
 
     await tester.pumpWidget(
       MaterialApp(
@@ -342,7 +319,7 @@ void main() {
     tester.view.physicalSize = const Size(900, 1100);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
-    await _loadFonts();
+    await loadAurisFonts();
 
     await tester.pumpWidget(
       MaterialApp(
@@ -390,7 +367,7 @@ void main() {
     tester.view.physicalSize = const Size(1600, 500);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
-      await _loadFonts();
+      await loadAurisFonts();
 
     const Color amber = Color(0xFFF0A500);
     final List<({String label, List<BoxShadow> glow})> candidates =
@@ -514,7 +491,7 @@ void main() {
       tester.view.physicalSize = const Size(1200, 1500);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.reset);
-      await _loadFonts();
+      await loadAurisFonts();
 
       await tester.pumpWidget(
         MaterialApp(
@@ -668,7 +645,7 @@ void main() {
     tester.view.physicalSize = const Size(1400, 600);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
-    await _loadFonts();
+    await loadAurisFonts();
 
     Widget sample(String w, FontWeight weight) => Padding(
           padding: const EdgeInsets.symmetric(vertical: 6),
@@ -727,7 +704,7 @@ void main() {
     tester.view.physicalSize = const Size(1200, 700);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
-    await _loadFonts();
+    await loadAurisFonts();
 
     await tester.pumpWidget(
       MaterialApp(
@@ -829,7 +806,7 @@ void main() {
     tester.view.physicalSize = const Size(1200, 500);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
-    await _loadFonts();
+    await loadAurisFonts();
 
     await tester.pumpWidget(
       MaterialApp(
@@ -894,7 +871,7 @@ void main() {
     tester.view.physicalSize = const Size(900, 1100);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
-      await _loadFonts();
+      await loadAurisFonts();
 
     await tester.pumpWidget(
       MaterialApp(

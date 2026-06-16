@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:auris/auris.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -117,6 +119,45 @@ void main() {
       expect(AurisTokens.fontDisplayFallback.last, 'sans-serif');
       expect(AurisTokens.fontBodyFallback.last, 'sans-serif');
       expect(AurisTokens.fontMonoFallback.last, 'monospace');
+    });
+
+    test('every bundled-font site in lib/ pairs a fallback chain', () {
+      // Invariant guard: the family -> fallback pairing is fixed (display/body
+      // -> sans, mono -> mono), so a `fontFamily: AurisTokens.fontX` line that
+      // omits the matching `fontFamilyFallback:` on the next line would silently
+      // reintroduce the tofu/blank-glyph bug — invisible to the goldens (which
+      // load the real fonts) until a font asset actually fails. Scanning the
+      // source keeps the ~80 hand-maintained pairs honest as new styles land.
+      const Map<String, String> expected = <String, String>{
+        'fontDisplay': 'fontDisplayFallback',
+        'fontBody': 'fontBodyFallback',
+        'fontMono': 'fontMonoFallback',
+      };
+      final RegExp familyLine =
+          RegExp(r'fontFamily: AurisTokens\.(fontDisplay|fontBody|fontMono),');
+
+      final List<String> unpaired = <String>[];
+      for (final FileSystemEntity entity
+          in Directory('lib').listSync(recursive: true)) {
+        if (entity is! File || !entity.path.endsWith('.dart')) continue;
+        final List<String> lines = entity.readAsLinesSync();
+        for (int i = 0; i < lines.length; i++) {
+          final RegExpMatch? m = familyLine.firstMatch(lines[i]);
+          if (m == null) continue;
+          final String wantFallback = expected[m.group(1)]!;
+          final String next = i + 1 < lines.length ? lines[i + 1] : '';
+          if (!next.contains('fontFamilyFallback: AurisTokens.$wantFallback')) {
+            unpaired.add('${entity.path}:${i + 1} -> needs $wantFallback');
+          }
+        }
+      }
+      expect(
+        unpaired,
+        isEmpty,
+        reason: 'Each fontFamily site must be followed by its matching '
+            'fontFamilyFallback so text degrades gracefully:\n'
+            '${unpaired.join('\n')}',
+      );
     });
   });
 
