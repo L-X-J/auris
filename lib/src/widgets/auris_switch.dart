@@ -5,12 +5,13 @@ import '../painters/slant_clipper.dart';
 import '../scheme.dart';
 import '../tokens.dart';
 
-/// A toggle with a **true chamfered track and thumb** — the geometry Material's
-/// `Switch` cannot express, since its track is a fixed stadium shape
+/// A toggle with a **true slanted (parallelogram) track and thumb** — the
+/// data-control HUD motif (§spec:design-tokens) Material's `Switch` cannot
+/// express, since its track is a fixed stadium shape
 /// (§spec:custom-widgets, §spec:theme-layer "known limits").
 ///
 /// The track and thumb are both clipped/outlined with the signature
-/// top-left + bottom-right chamfer via [AurisChamferBorder] / [ChamferClipper].
+/// right-leaning slant via [AurisSlantBorder] / [SlantClipper].
 /// The thumb slides between the two ends and the track color crosses from the
 /// resting border to the active primary over the scheme's normal duration; both
 /// the position and the color animate together. An optional [label] sits beside
@@ -24,7 +25,7 @@ import '../tokens.dart';
 /// forbidden cursor; an enabled switch shows a gold keyboard-focus outline
 /// (§spec:accessibility).
 class AurisSwitch extends StatefulWidget {
-  /// Creates a chamfered switch.
+  /// Creates a slanted switch.
   const AurisSwitch({
     super.key,
     required this.value,

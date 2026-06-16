@@ -102,7 +102,7 @@ class _AurisRadioState<T> extends State<AurisRadio<T>> {
               ? DecoratedBox(
                   decoration: ShapeDecoration(
                     color: _enabled ? scheme.primaryActive : scheme.textDim,
-                    shape: const AurisChamferBorder(cut: 2),
+                    shape: AurisChamferBorder(cut: scheme.bevel.xs),
                   ),
                   child: const SizedBox(width: 8, height: 8),
                 )

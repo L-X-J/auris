@@ -313,11 +313,12 @@ already-populated `ColorScheme` and `TextTheme`.
 
 **Rationale and known limits.** `ThemeData` + a custom `OutlinedBorder`
 (`AurisChamferBorder`) reaches most components but has gaps Flutter does not
-expose: the `Switch` track cannot be chamfered, and the linear
-`ProgressIndicator` cannot be segmented. Where a
+expose: the `Switch` track cannot take the slanted data-control geometry, and
+the linear `ProgressIndicator` cannot be segmented. Where a
 gap degrades the aesthetic, the theme is configured as closely as possible and
 a custom widget (§spec:custom-widgets) is provided as the preferred
-replacement — `AurisSwitch` and `AurisProgressBar` respectively. Some Material
+replacement — `AurisSwitch` (its slanted track and thumb cannot be expressed
+through `ThemeData`) and `AurisProgressBar` respectively. Some Material
 themes (dialog, popup, snackbar) cannot attach a glow shadow directly through
 `ThemeData`; glow on those surfaces is delivered by the widget that consumes
 them where it matters, and the rationale is recorded rather than the workaround
@@ -350,8 +351,8 @@ visible keyboard focus (§spec:accessibility).
 | `AurisBadge` | Small text-only status tag in monospace, colored by variant (amber/gold/slate/danger/success/inactive). |
 | `AurisPanel` | Titled card with a header strip, corner-bracket ornaments flanking the title, optional status code, and an `accent` mode (gold border + subtle glow). |
 | `AurisNotification` | Inline alert banner with a left accent bar + matching glow, variant icon, title, and optional message/code and dismiss. |
-| `AurisSwitch` | Toggle with a true chamfered track and thumb (impossible via `ThemeData`); animates thumb position and track color over `durationNormal`; optional label and on/off status labels. |
-| `AurisProgressBar` | Segmented meter — N chamfered segments; filled segments use the variant color, the leading filled segment glows. `.animated` constructor tweens value changes. The preferred linear-progress replacement. |
+| `AurisSwitch` | Toggle with a true slanted (parallelogram) track and thumb — the data-control motif (§spec:design-tokens), impossible via `ThemeData`; animates thumb position and track color over `durationNormal`; optional label and on/off status labels. |
+| `AurisProgressBar` | Segmented meter — N slanted (parallelogram) segments, the data-control motif (§spec:design-tokens); filled segments use the variant color, the leading filled segment glows. `.animated` constructor tweens value changes. The preferred linear-progress replacement. |
 | `AurisDataRow` | Fixed-height key/value row with a bottom divider; value in monospace, optional highlight (bright + glow) and trailing widget. |
 | `AurisTerminal` | Scrolling monospace log that auto-scrolls to the newest line; line color by type (ok/error/augment/warning/normal); optional blinking block cursor. Wraps `AurisPanel`. |
 | `AurisStepIndicator` | Chamfered step marker (inactive/active/complete/error) for use with `Stepper.stepIconBuilder` or standalone. |
