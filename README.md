@@ -24,16 +24,16 @@ and has **zero runtime dependencies** beyond the Flutter SDK.
 
 Requires **Flutter ≥ 3.35** / **Dart ≥ 3.9**.
 
-```yaml
-# pubspec.yaml
-dependencies:
-  auris:
-    git:
-      url: https://github.com/PointSource/auris.git
+```bash
+flutter pub add auris
 ```
 
-> Auris is built to be publication-ready but is **not yet on pub.dev** (v0.1.0).
-> Until then, depend on it via git or a local `path:`.
+Or add it to your `pubspec.yaml` directly:
+
+```yaml
+dependencies:
+  auris: ^0.1.0
+```
 
 The required fonts (Rajdhani, Exo 2, Share Tech Mono) are **bundled** under the
 SIL Open Font License — no manual font setup. If a bundled font ever fails to
