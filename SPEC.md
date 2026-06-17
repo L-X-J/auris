@@ -555,6 +555,87 @@ in CI when the look drifts (§req:success-criteria).
 
 ---
 
+## Live web demo §spec:live-demo
+
+*Status: not started*
+
+Cites: §req:success-criteria #10, §req:user-stories, §req:quality-attributes,
+§req:constraints
+
+**Problem.** A prospect cannot judge an aesthetic UI kit from screenshots and a
+dependency line. The fastest honest evaluation is to touch the real widgets —
+flip the accent, drag a slider, watch the glow — but doing that today requires
+cloning the repo, installing the Flutter SDK, and running the example. That
+setup cost filters out exactly the casual evaluator the kit is trying to win.
+
+**Observable behavior.** The showcase example (§spec:showcase) is reachable as a
+hosted web application at a stable public URL
+(`https://point-source.github.io/auris/`), and the README links to it
+prominently near the top so a reader of the repo or the pub.dev page can reach
+it in one click. The hosted app is the same showcase a developer runs locally —
+the full component coverage, the live accent / bevel / glow controls — running
+in the browser with no install. On a push to `main`, the live demo updates to
+reflect the new tip within one CI run. The demo is navigable and legible on a
+phone browser, not only a desktop one: the showcase reflows to the viewport
+width without horizontal scrolling and remains the primary single-column scroll.
+
+**Verification path.** Open the published URL on a desktop browser and a phone
+browser; interact with the showcase (change the accent, move a slider) and
+confirm the widgets respond and the layout is legible on both. Follow the README
+link and confirm it lands on the demo. Push a change to `main` and confirm the
+live demo reflects it after the deploy completes.
+
+**Design decisions.**
+
+- **GitHub Pages, deployed by CI on every push to `main`.** The example is a
+  pure client-side Flutter web build with no backend, so static hosting is
+  sufficient, and Pages is zero-cost and co-located with the repository.
+  Every-push deployment (over release-gated or manual) is chosen so the demo
+  always reflects `main` — the freshness the "try before you adopt" path needs
+  (§req:priorities). The tradeoff accepted is that an in-progress commit can
+  briefly surface on the public URL; this is acceptable because `main` is
+  expected to stay releasable and the alternative (stale demo) is worse for
+  evaluation.
+- **A broken build never replaces a working demo.** The publish step is gated
+  behind a successful web build (and the existing analyze / test / golden
+  gates) within the same workflow run. If the build fails, the job fails before
+  publishing and the previously deployed site stays live untouched
+  (§req:success-criteria #10). This is why the deploy is one fail-fast pipeline,
+  not an unconditional upload.
+- **Project-Pages base path.** The site is served from a repository subpath
+  (`/auris/`), not a domain root, so the web build is configured with that base
+  href; the default root base href would break asset and route resolution. This
+  is a deployment-environment constraint, not an app concern — the same build
+  served at a domain root would need a different base href.
+- **Fidelity over payload for the renderer.** The showcase exists to evaluate
+  glow, chamfered clipping, and segmented geometry, so the web build favors the
+  rendering path that reproduces those faithfully even though it costs a larger
+  initial download. A demo that loads fast but renders the glow wrong would
+  defeat its own purpose.
+- **Responsiveness lives in the example, not the kit.** The phone-browser
+  legibility requirement is satisfied by the example app's layout reflowing to
+  the viewport; the package's widgets remain mobile-first and are not adapted
+  for web/desktop (§spec:scope). The evaluation surface is responsive; the
+  shipped widgets are not — these are deliberately separate scopes
+  (§req:quality-attributes "Demo reach").
+
+**Security.** The deployment is a public static site with no untrusted input and
+no application secrets; the workflow uses the scoped GitHub Pages deployment
+permissions (`pages: write`, `id-token: write`) and the run-scoped token, so no
+repository secret is exposed and the blast radius of a compromised run is the
+public demo content itself.
+
+**Alternatives considered.** *Release-gated or manual deploy* — rejected for
+v0.1.0 because the demo's value is reflecting current work for evaluators, and
+the package is pre-publication; freshness outweighs the small risk of showing an
+in-progress `main`. *A separate web-tuned demo app* — rejected to avoid a second
+showcase to maintain; the one showcase is both the local acceptance harness and
+the hosted demo, so they cannot drift. *Third-party static hosts (Netlify,
+Vercel)* — rejected as unnecessary dependencies and accounts when Pages already
+ships with the repository.
+
+---
+
 ## Scope and non-goals §spec:scope
 
 *Status: in progress*
@@ -573,8 +654,11 @@ Deferred beyond v0.1.0, by deliberate decision:
 - Actual pub.dev publication (the package is publication-*ready*, not
   published).
 - Localization / RTL support.
-- Web- or desktop-specific adaptations (mobile-first; the kit is not adapted for
-  those surfaces in v0.1.0).
+- Web- or desktop-specific adaptations *of the kit's widgets* (mobile-first; the
+  package is not adapted for those surfaces in v0.1.0). The one carve-out is the
+  hosted showcase: the **example app** reflows for phone browsers so the live
+  demo is legible there (§spec:live-demo), but that responsiveness lives in the
+  example, not the package.
 - Storybook / Widgetbook integration.
 - Any networking, state management, routing, or data layer — Auris is purely
   presentational, permanently, not just in v0.1.0.
