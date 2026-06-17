@@ -123,8 +123,8 @@ void main() {
 
     test('every bundled-font site in lib/ pairs a fallback chain', () {
       // Invariant guard: the family -> fallback pairing is fixed (display/body
-      // -> sans, mono -> mono), so a `fontFamily: AurisTokens.fontX` line that
-      // omits the matching `fontFamilyFallback:` on the next line would silently
+      // -> sans, mono -> mono), so a `fontFamily: AurisTokens.fontX` site that
+      // omits the matching `fontFamilyFallback:` would silently
       // reintroduce the tofu/blank-glyph bug — invisible to the goldens (which
       // load the real fonts) until a font asset actually fails. Scanning the
       // source keeps the ~80 hand-maintained pairs honest as new styles land.
@@ -133,28 +133,38 @@ void main() {
         'fontBody': 'fontBodyFallback',
         'fontMono': 'fontMonoFallback',
       };
-      final RegExp familyLine =
-          RegExp(r'fontFamily: AurisTokens\.(fontDisplay|fontBody|fontMono),');
+      final RegExp familySite = RegExp(
+        r'fontFamily: AurisTokens\.(fontDisplay|fontBody|fontMono),',
+      );
 
       final List<String> unpaired = <String>[];
-      for (final FileSystemEntity entity
-          in Directory('lib').listSync(recursive: true)) {
+      for (final FileSystemEntity entity in Directory(
+        'lib',
+      ).listSync(recursive: true)) {
         if (entity is! File || !entity.path.endsWith('.dart')) continue;
-        final List<String> lines = entity.readAsLinesSync();
-        for (int i = 0; i < lines.length; i++) {
-          final RegExpMatch? m = familyLine.firstMatch(lines[i]);
-          if (m == null) continue;
+        // Collapse whitespace before scanning so the pairing check survives
+        // line-wrapping by `dart format` — a deeply-indented style can wrap
+        // `fontFamilyFallback:` onto a separate line from its value.
+        final String src = entity.readAsStringSync().replaceAll(
+          RegExp(r'\s+'),
+          ' ',
+        );
+        for (final RegExpMatch m in familySite.allMatches(src)) {
           final String wantFallback = expected[m.group(1)]!;
-          final String next = i + 1 < lines.length ? lines[i + 1] : '';
-          if (!next.contains('fontFamilyFallback: AurisTokens.$wantFallback')) {
-            unpaired.add('${entity.path}:${i + 1} -> needs $wantFallback');
+          final int end = m.end + 80 < src.length ? m.end + 80 : src.length;
+          final String after = src.substring(m.end, end).trim();
+          if (!after.startsWith(
+            'fontFamilyFallback: AurisTokens.$wantFallback',
+          )) {
+            unpaired.add('${entity.path} -> needs $wantFallback');
           }
         }
       }
       expect(
         unpaired,
         isEmpty,
-        reason: 'Each fontFamily site must be followed by its matching '
+        reason:
+            'Each fontFamily site must be followed by its matching '
             'fontFamilyFallback so text degrades gracefully:\n'
             '${unpaired.join('\n')}',
       );
@@ -180,16 +190,18 @@ void main() {
 
   group('AurisScheme.resolve', () {
     test('resolves the dark branch', () {
-      final AurisScheme scheme =
-          AurisScheme.resolve(brightness: Brightness.dark);
+      final AurisScheme scheme = AurisScheme.resolve(
+        brightness: Brightness.dark,
+      );
       expect(scheme.brightness, Brightness.dark);
       expect(scheme.surfacePage, AurisTokens.void_);
       expect(scheme.primaryActive, AurisTokens.gold);
     });
 
     test('resolves the light branch', () {
-      final AurisScheme scheme =
-          AurisScheme.resolve(brightness: Brightness.light);
+      final AurisScheme scheme = AurisScheme.resolve(
+        brightness: Brightness.light,
+      );
       expect(scheme.brightness, Brightness.light);
       expect(scheme.surfacePage.computeLuminance(), greaterThan(0.5));
     });
@@ -220,11 +232,10 @@ void main() {
           theme: AurisTheme.light(),
           home: Builder(
             builder: (BuildContext context) {
-              final AurisScheme scheme =
-                  Theme.of(context).extension<AurisScheme>()!;
-              return Scaffold(
-                body: ColoredBox(color: scheme.surfacePanel),
-              );
+              final AurisScheme scheme = Theme.of(
+                context,
+              ).extension<AurisScheme>()!;
+              return Scaffold(body: ColoredBox(color: scheme.surfacePanel));
             },
           ),
         ),

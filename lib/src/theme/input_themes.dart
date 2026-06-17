@@ -4,6 +4,7 @@ import '../painters/chamfer_border.dart';
 import '../painters/slant_clipper.dart';
 import '../scheme.dart';
 import '../tokens.dart';
+import 'state_layers.dart';
 
 /// Builders for the Material input and selection-control component themes, all
 /// derived from the resolved [AurisScheme] (§spec:scheme) rather than from raw
@@ -44,12 +45,12 @@ abstract final class AurisInputThemes {
 
   /// A monospace, uppercase label style for input labels.
   static TextStyle _labelStyle(AurisScheme scheme, Color color) => TextStyle(
-        fontFamily: AurisTokens.fontMono,
-        fontFamilyFallback: AurisTokens.fontMonoFallback,
-        fontSize: 13,
-        letterSpacing: AurisTokens.trackingLabel,
-        color: color,
-      );
+    fontFamily: AurisTokens.fontMono,
+    fontFamilyFallback: AurisTokens.fontMonoFallback,
+    fontSize: 13,
+    letterSpacing: AurisTokens.trackingLabel,
+    color: color,
+  );
 
   // ---------------------------------------------------------------------------
   // InputDecoration — filled inset surface, chamfered border, gold focus.
@@ -62,8 +63,7 @@ abstract final class AurisInputThemes {
       filled: true,
       fillColor: scheme.surfaceInset,
       isDense: false,
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       // Resting / enabled — bright resting outline.
       enabledBorder: _inputBorder(scheme, scheme.borderBright),
       border: _inputBorder(scheme, scheme.borderBright),
@@ -115,10 +115,10 @@ abstract final class AurisInputThemes {
         color: scheme.textBright,
       ),
       menuStyle: MenuStyle(
-        backgroundColor:
-            WidgetStatePropertyAll<Color>(scheme.surfacePanel),
-        surfaceTintColor:
-            const WidgetStatePropertyAll<Color>(Colors.transparent),
+        backgroundColor: WidgetStatePropertyAll<Color>(scheme.surfacePanel),
+        surfaceTintColor: const WidgetStatePropertyAll<Color>(
+          Colors.transparent,
+        ),
         shadowColor: const WidgetStatePropertyAll<Color>(Colors.transparent),
         elevation: const WidgetStatePropertyAll<double>(0),
         side: WidgetStatePropertyAll<BorderSide>(
@@ -142,21 +142,22 @@ abstract final class AurisInputThemes {
   static MenuButtonThemeData menuButton(AurisScheme scheme) {
     return MenuButtonThemeData(
       style: ButtonStyle(
-        backgroundColor:
-            const WidgetStatePropertyAll<Color>(Colors.transparent),
-        foregroundColor: WidgetStateProperty.resolveWith<Color?>(
-          (Set<WidgetState> states) {
-            if (states.contains(WidgetState.disabled)) {
-              return scheme.textDim;
-            }
-            if (states.contains(WidgetState.hovered) ||
-                states.contains(WidgetState.focused)) {
-              return scheme.textBright;
-            }
-            return scheme.textMid;
-          },
+        backgroundColor: const WidgetStatePropertyAll<Color>(
+          Colors.transparent,
         ),
-        overlayColor: _overlay(scheme.primaryActive),
+        foregroundColor: WidgetStateProperty.resolveWith<Color?>((
+          Set<WidgetState> states,
+        ) {
+          if (states.contains(WidgetState.disabled)) {
+            return scheme.textDim;
+          }
+          if (states.contains(WidgetState.hovered) ||
+              states.contains(WidgetState.focused)) {
+            return scheme.textBright;
+          }
+          return scheme.textMid;
+        }),
+        overlayColor: AurisStateLayers.overlay(scheme.primaryActive),
         textStyle: const WidgetStatePropertyAll<TextStyle>(
           TextStyle(
             fontFamily: AurisTokens.fontMono,
@@ -233,40 +234,24 @@ abstract final class AurisInputThemes {
   // Checkbox — gold check fill, suppressed splash, amber overlay, chamfered.
   // ---------------------------------------------------------------------------
 
-  /// An amber hover / focus / press overlay tinting [base].
-  static WidgetStateProperty<Color?> _overlay(Color base) {
-    return WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
-      if (states.contains(WidgetState.pressed)) {
-        return base.withValues(alpha: 0.24);
-      }
-      if (states.contains(WidgetState.focused)) {
-        return base.withValues(alpha: 0.20);
-      }
-      if (states.contains(WidgetState.hovered)) {
-        return base.withValues(alpha: 0.12);
-      }
-      return null;
-    });
-  }
-
   /// The [CheckboxThemeData]: gold fill when checked, chamfered box, amber
   /// overlay, ripple suppressed.
   static CheckboxThemeData checkbox(AurisScheme scheme) {
     return CheckboxThemeData(
-      fillColor: WidgetStateProperty.resolveWith<Color?>(
-        (Set<WidgetState> states) {
-          if (states.contains(WidgetState.disabled)) {
-            return scheme.surfaceInset.withValues(alpha: _disabledOpacity);
-          }
-          if (states.contains(WidgetState.selected)) {
-            return scheme.primaryActive;
-          }
-          return scheme.surfaceInset;
-        },
-      ),
+      fillColor: WidgetStateProperty.resolveWith<Color?>((
+        Set<WidgetState> states,
+      ) {
+        if (states.contains(WidgetState.disabled)) {
+          return scheme.surfaceInset.withValues(alpha: _disabledOpacity);
+        }
+        if (states.contains(WidgetState.selected)) {
+          return scheme.primaryActive;
+        }
+        return scheme.surfaceInset;
+      }),
       checkColor: WidgetStatePropertyAll<Color>(scheme.onPrimary),
       side: BorderSide(color: scheme.borderBright, width: 1.5),
-      overlayColor: _overlay(scheme.primaryActive),
+      overlayColor: AurisStateLayers.overlay(scheme.primaryActive),
       splashRadius: 0,
       // xs (not sm): the checkbox is ~18px, so a larger cut reads as a diamond.
       shape: AurisChamferBorder(cut: scheme.bevel.xs),
@@ -282,18 +267,18 @@ abstract final class AurisInputThemes {
   /// suppressed. (Radio geometry is circular — Flutter exposes no chamfer.)
   static RadioThemeData radio(AurisScheme scheme) {
     return RadioThemeData(
-      fillColor: WidgetStateProperty.resolveWith<Color?>(
-        (Set<WidgetState> states) {
-          if (states.contains(WidgetState.disabled)) {
-            return scheme.primaryActive.withValues(alpha: _disabledOpacity);
-          }
-          if (states.contains(WidgetState.selected)) {
-            return scheme.primaryActive;
-          }
-          return scheme.borderBright;
-        },
-      ),
-      overlayColor: _overlay(scheme.primaryActive),
+      fillColor: WidgetStateProperty.resolveWith<Color?>((
+        Set<WidgetState> states,
+      ) {
+        if (states.contains(WidgetState.disabled)) {
+          return scheme.primaryActive.withValues(alpha: _disabledOpacity);
+        }
+        if (states.contains(WidgetState.selected)) {
+          return scheme.primaryActive;
+        }
+        return scheme.borderBright;
+      }),
+      overlayColor: AurisStateLayers.overlay(scheme.primaryActive),
       splashRadius: 0,
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
     );
@@ -312,37 +297,37 @@ abstract final class AurisInputThemes {
   /// replacement.
   static SwitchThemeData switchTheme(AurisScheme scheme) {
     return SwitchThemeData(
-      thumbColor: WidgetStateProperty.resolveWith<Color?>(
-        (Set<WidgetState> states) {
-          if (states.contains(WidgetState.disabled)) {
-            return scheme.primaryDim.withValues(alpha: _disabledOpacity);
-          }
-          if (states.contains(WidgetState.selected)) {
-            return scheme.primaryActive;
-          }
-          return scheme.primaryDim;
-        },
-      ),
-      trackColor: WidgetStateProperty.resolveWith<Color?>(
-        (Set<WidgetState> states) {
-          if (states.contains(WidgetState.disabled)) {
-            return scheme.surfaceInset.withValues(alpha: _disabledOpacity);
-          }
-          if (states.contains(WidgetState.selected)) {
-            return scheme.primaryActive.withValues(alpha: 0.35);
-          }
-          return scheme.surfaceInset;
-        },
-      ),
-      trackOutlineColor: WidgetStateProperty.resolveWith<Color?>(
-        (Set<WidgetState> states) {
-          if (states.contains(WidgetState.selected)) {
-            return scheme.primaryActive;
-          }
-          return scheme.borderBright;
-        },
-      ),
-      overlayColor: _overlay(scheme.primaryActive),
+      thumbColor: WidgetStateProperty.resolveWith<Color?>((
+        Set<WidgetState> states,
+      ) {
+        if (states.contains(WidgetState.disabled)) {
+          return scheme.primaryDim.withValues(alpha: _disabledOpacity);
+        }
+        if (states.contains(WidgetState.selected)) {
+          return scheme.primaryActive;
+        }
+        return scheme.primaryDim;
+      }),
+      trackColor: WidgetStateProperty.resolveWith<Color?>((
+        Set<WidgetState> states,
+      ) {
+        if (states.contains(WidgetState.disabled)) {
+          return scheme.surfaceInset.withValues(alpha: _disabledOpacity);
+        }
+        if (states.contains(WidgetState.selected)) {
+          return scheme.primaryActive.withValues(alpha: 0.35);
+        }
+        return scheme.surfaceInset;
+      }),
+      trackOutlineColor: WidgetStateProperty.resolveWith<Color?>((
+        Set<WidgetState> states,
+      ) {
+        if (states.contains(WidgetState.selected)) {
+          return scheme.primaryActive;
+        }
+        return scheme.borderBright;
+      }),
+      overlayColor: AurisStateLayers.overlay(scheme.primaryActive),
       splashRadius: 0,
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
     );
@@ -368,8 +353,7 @@ abstract final class AurisInputThemes {
       // specks, so they are suppressed.
       tickMarkShape: const _AurisNoTickMark(),
       thumbShape: _AurisSliderThumb(cut: scheme.bevel.xs),
-      overlayShape:
-          const RoundSliderOverlayShape(overlayRadius: 16),
+      overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
       valueIndicatorTextStyle: TextStyle(
         fontFamily: AurisTokens.fontMono,
         fontFamilyFallback: AurisTokens.fontMonoFallback,
@@ -437,8 +421,7 @@ class _AurisNoTickMark extends SliderTickMarkShape {
   Size getPreferredSize({
     required SliderThemeData sliderTheme,
     required bool isEnabled,
-  }) =>
-      Size.zero;
+  }) => Size.zero;
 
   @override
   void paint(

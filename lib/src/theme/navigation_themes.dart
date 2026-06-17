@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../painters/chamfer_border.dart';
 import '../scheme.dart';
 import '../tokens.dart';
+import 'state_layers.dart';
 
 /// Builders for the Material navigation-chrome component themes, all derived
 /// from the resolved [AurisScheme] (§spec:scheme) rather than from raw
@@ -28,23 +29,6 @@ abstract final class AurisNavigationThemes {
   /// The chamfered selection-indicator shape, sized from the small bevel role.
   static AurisChamferBorder _indicator(AurisScheme scheme) =>
       AurisChamferBorder(cut: scheme.bevel.sm);
-
-  /// An amber hover / focus / press overlay tinting [base], replacing the ink
-  /// ripple.
-  static WidgetStateProperty<Color?> _overlay(Color base) {
-    return WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
-      if (states.contains(WidgetState.pressed)) {
-        return base.withValues(alpha: 0.24);
-      }
-      if (states.contains(WidgetState.focused)) {
-        return base.withValues(alpha: 0.20);
-      }
-      if (states.contains(WidgetState.hovered)) {
-        return base.withValues(alpha: 0.12);
-      }
-      return null;
-    });
-  }
 
   // ---------------------------------------------------------------------------
   // AppBar — panel surface, flat, mono-uppercase title, gold icons.
@@ -106,29 +90,29 @@ abstract final class AurisNavigationThemes {
       surfaceTintColor: Colors.transparent,
       indicatorColor: scheme.primaryActive.withValues(alpha: 0.20),
       indicatorShape: _indicator(scheme),
-      overlayColor: _overlay(scheme.primaryActive),
-      labelTextStyle: WidgetStateProperty.resolveWith<TextStyle?>(
-        (Set<WidgetState> states) {
-          final Color color = states.contains(WidgetState.selected)
-              ? scheme.primaryActive
-              : scheme.textMid;
-          return TextStyle(
-            fontFamily: AurisTokens.fontMono,
-            fontFamilyFallback: AurisTokens.fontMonoFallback,
-            fontSize: 11,
-            letterSpacing: AurisTokens.trackingLabel,
-            color: color,
-          );
-        },
-      ),
-      iconTheme: WidgetStateProperty.resolveWith<IconThemeData?>(
-        (Set<WidgetState> states) {
-          final Color color = states.contains(WidgetState.selected)
-              ? scheme.primaryActive
-              : scheme.primaryDim;
-          return IconThemeData(color: color, size: 24);
-        },
-      ),
+      overlayColor: AurisStateLayers.overlay(scheme.primaryActive),
+      labelTextStyle: WidgetStateProperty.resolveWith<TextStyle?>((
+        Set<WidgetState> states,
+      ) {
+        final Color color = states.contains(WidgetState.selected)
+            ? scheme.primaryActive
+            : scheme.textMid;
+        return TextStyle(
+          fontFamily: AurisTokens.fontMono,
+          fontFamilyFallback: AurisTokens.fontMonoFallback,
+          fontSize: 11,
+          letterSpacing: AurisTokens.trackingLabel,
+          color: color,
+        );
+      }),
+      iconTheme: WidgetStateProperty.resolveWith<IconThemeData?>((
+        Set<WidgetState> states,
+      ) {
+        final Color color = states.contains(WidgetState.selected)
+            ? scheme.primaryActive
+            : scheme.primaryDim;
+        return IconThemeData(color: color, size: 24);
+      }),
     );
   }
 
@@ -185,28 +169,28 @@ abstract final class AurisNavigationThemes {
       elevation: 0,
       indicatorColor: scheme.primaryActive.withValues(alpha: 0.20),
       indicatorShape: _indicator(scheme),
-      labelTextStyle: WidgetStateProperty.resolveWith<TextStyle?>(
-        (Set<WidgetState> states) {
-          final Color color = states.contains(WidgetState.selected)
-              ? scheme.primaryActive
-              : scheme.textMid;
-          return TextStyle(
-            fontFamily: AurisTokens.fontMono,
-            fontFamilyFallback: AurisTokens.fontMonoFallback,
-            fontSize: 13,
-            letterSpacing: AurisTokens.trackingLabel,
-            color: color,
-          );
-        },
-      ),
-      iconTheme: WidgetStateProperty.resolveWith<IconThemeData?>(
-        (Set<WidgetState> states) {
-          final Color color = states.contains(WidgetState.selected)
-              ? scheme.primaryActive
-              : scheme.primaryDim;
-          return IconThemeData(color: color, size: 24);
-        },
-      ),
+      labelTextStyle: WidgetStateProperty.resolveWith<TextStyle?>((
+        Set<WidgetState> states,
+      ) {
+        final Color color = states.contains(WidgetState.selected)
+            ? scheme.primaryActive
+            : scheme.textMid;
+        return TextStyle(
+          fontFamily: AurisTokens.fontMono,
+          fontFamilyFallback: AurisTokens.fontMonoFallback,
+          fontSize: 13,
+          letterSpacing: AurisTokens.trackingLabel,
+          color: color,
+        );
+      }),
+      iconTheme: WidgetStateProperty.resolveWith<IconThemeData?>((
+        Set<WidgetState> states,
+      ) {
+        final Color color = states.contains(WidgetState.selected)
+            ? scheme.primaryActive
+            : scheme.primaryDim;
+        return IconThemeData(color: color, size: 24);
+      }),
     );
   }
 
@@ -256,7 +240,7 @@ abstract final class AurisNavigationThemes {
       dividerColor: scheme.borderResting,
       labelColor: scheme.primaryActive,
       unselectedLabelColor: scheme.textMid,
-      overlayColor: _overlay(scheme.primaryActive),
+      overlayColor: AurisStateLayers.overlay(scheme.primaryActive),
       splashFactory: NoSplash.splashFactory,
       labelStyle: TextStyle(
         fontFamily: AurisTokens.fontMono,

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../painters/chamfer_border.dart';
 import '../scheme.dart';
 import '../tokens.dart';
+import 'state_layers.dart';
 
 /// Builders for the Material button component themes, all derived from the
 /// resolved [AurisScheme] (§spec:scheme) rather than from raw primitives, so a
@@ -47,37 +48,9 @@ abstract final class AurisButtonThemes {
     letterSpacing: AurisTokens.trackingButton,
   );
 
-  /// An amber hover / focus / press overlay that replaces the ink ripple.
-  ///
-  /// [base] is the role the overlay tints (the gold/amber primary for most
-  /// buttons). Press is the strongest, focus next, hover lightest.
-  static WidgetStateProperty<Color?> _overlay(Color base) {
-    return WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
-      if (states.contains(WidgetState.pressed)) {
-        return base.withValues(alpha: 0.24);
-      }
-      if (states.contains(WidgetState.focused)) {
-        return base.withValues(alpha: 0.20);
-      }
-      if (states.contains(WidgetState.hovered)) {
-        return base.withValues(alpha: 0.12);
-      }
-      return null;
-    });
-  }
-
-  /// A foreground that dims to [_disabledOpacity] when disabled.
-  static WidgetStateProperty<Color?> _foreground(Color enabled) {
-    return WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
-      if (states.contains(WidgetState.disabled)) {
-        return enabled.withValues(alpha: _disabledOpacity);
-      }
-      return enabled;
-    });
-  }
-
-  /// A solid background that dims when disabled (for filled-style buttons).
-  static WidgetStateProperty<Color?> _background(Color enabled) {
+  /// A color role that dims to [_disabledOpacity] when disabled — used for both
+  /// foreground (text / icon) and solid-background button roles.
+  static WidgetStateProperty<Color?> _dimWhenDisabled(Color enabled) {
     return WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
       if (states.contains(WidgetState.disabled)) {
         return enabled.withValues(alpha: _disabledOpacity);
@@ -88,27 +61,29 @@ abstract final class AurisButtonThemes {
 
   /// A gold focus / bright-on-hover outline that dims when disabled.
   static WidgetStateProperty<BorderSide?> _side(AurisScheme scheme) {
-    return WidgetStateProperty.resolveWith<BorderSide?>(
-      (Set<WidgetState> states) {
-        if (states.contains(WidgetState.disabled)) {
-          return BorderSide(
-            color: scheme.borderResting.withValues(alpha: _disabledOpacity),
-          );
-        }
-        if (states.contains(WidgetState.focused)) {
-          return BorderSide(color: scheme.primaryHighlight, width: 1.5);
-        }
-        if (states.contains(WidgetState.hovered) ||
-            states.contains(WidgetState.pressed)) {
-          return BorderSide(color: scheme.primaryActive);
-        }
-        return BorderSide(color: scheme.borderBright);
-      },
-    );
+    return WidgetStateProperty.resolveWith<BorderSide?>((
+      Set<WidgetState> states,
+    ) {
+      if (states.contains(WidgetState.disabled)) {
+        return BorderSide(
+          color: scheme.borderResting.withValues(alpha: _disabledOpacity),
+        );
+      }
+      if (states.contains(WidgetState.focused)) {
+        return BorderSide(color: scheme.primaryHighlight, width: 1.5);
+      }
+      if (states.contains(WidgetState.hovered) ||
+          states.contains(WidgetState.pressed)) {
+        return BorderSide(color: scheme.primaryActive);
+      }
+      return BorderSide(color: scheme.borderBright);
+    });
   }
 
-  static const EdgeInsets _padding =
-      EdgeInsets.symmetric(horizontal: 20, vertical: 14);
+  static const EdgeInsets _padding = EdgeInsets.symmetric(
+    horizontal: 20,
+    vertical: 14,
+  );
 
   // ---------------------------------------------------------------------------
   // FilledButton — solid gold fill, near-black foreground.
@@ -118,14 +93,14 @@ abstract final class AurisButtonThemes {
   static FilledButtonThemeData filled(AurisScheme scheme) {
     return FilledButtonThemeData(
       style: ButtonStyle(
-        backgroundColor: _background(scheme.primaryActive),
-        foregroundColor: _foreground(scheme.onPrimary),
-        overlayColor: _overlay(scheme.surfacePage),
+        backgroundColor: _dimWhenDisabled(scheme.primaryActive),
+        foregroundColor: _dimWhenDisabled(scheme.onPrimary),
+        overlayColor: AurisStateLayers.overlay(scheme.surfacePage),
         elevation: const WidgetStatePropertyAll<double>(0),
-        shadowColor:
-            const WidgetStatePropertyAll<Color>(Colors.transparent),
-        surfaceTintColor:
-            const WidgetStatePropertyAll<Color>(Colors.transparent),
+        shadowColor: const WidgetStatePropertyAll<Color>(Colors.transparent),
+        surfaceTintColor: const WidgetStatePropertyAll<Color>(
+          Colors.transparent,
+        ),
         splashFactory: NoSplash.splashFactory,
         padding: const WidgetStatePropertyAll<EdgeInsets>(_padding),
         shape: WidgetStatePropertyAll<OutlinedBorder>(_bevel(scheme)),
@@ -145,14 +120,14 @@ abstract final class AurisButtonThemes {
   static ElevatedButtonThemeData elevated(AurisScheme scheme) {
     return ElevatedButtonThemeData(
       style: ButtonStyle(
-        backgroundColor: _background(scheme.surfaceInset),
-        foregroundColor: _foreground(scheme.primaryActive),
-        overlayColor: _overlay(scheme.primaryActive),
+        backgroundColor: _dimWhenDisabled(scheme.surfaceInset),
+        foregroundColor: _dimWhenDisabled(scheme.primaryActive),
+        overlayColor: AurisStateLayers.overlay(scheme.primaryActive),
         elevation: const WidgetStatePropertyAll<double>(0),
-        shadowColor:
-            const WidgetStatePropertyAll<Color>(Colors.transparent),
-        surfaceTintColor:
-            const WidgetStatePropertyAll<Color>(Colors.transparent),
+        shadowColor: const WidgetStatePropertyAll<Color>(Colors.transparent),
+        surfaceTintColor: const WidgetStatePropertyAll<Color>(
+          Colors.transparent,
+        ),
         splashFactory: NoSplash.splashFactory,
         padding: const WidgetStatePropertyAll<EdgeInsets>(_padding),
         side: _side(scheme),
@@ -170,15 +145,16 @@ abstract final class AurisButtonThemes {
   static OutlinedButtonThemeData outlined(AurisScheme scheme) {
     return OutlinedButtonThemeData(
       style: ButtonStyle(
-        backgroundColor:
-            const WidgetStatePropertyAll<Color>(Colors.transparent),
-        foregroundColor: _foreground(scheme.primaryActive),
-        overlayColor: _overlay(scheme.primaryActive),
+        backgroundColor: const WidgetStatePropertyAll<Color>(
+          Colors.transparent,
+        ),
+        foregroundColor: _dimWhenDisabled(scheme.primaryActive),
+        overlayColor: AurisStateLayers.overlay(scheme.primaryActive),
         elevation: const WidgetStatePropertyAll<double>(0),
-        shadowColor:
-            const WidgetStatePropertyAll<Color>(Colors.transparent),
-        surfaceTintColor:
-            const WidgetStatePropertyAll<Color>(Colors.transparent),
+        shadowColor: const WidgetStatePropertyAll<Color>(Colors.transparent),
+        surfaceTintColor: const WidgetStatePropertyAll<Color>(
+          Colors.transparent,
+        ),
         splashFactory: NoSplash.splashFactory,
         padding: const WidgetStatePropertyAll<EdgeInsets>(_padding),
         side: _side(scheme),
@@ -196,15 +172,16 @@ abstract final class AurisButtonThemes {
   static TextButtonThemeData text(AurisScheme scheme) {
     return TextButtonThemeData(
       style: ButtonStyle(
-        backgroundColor:
-            const WidgetStatePropertyAll<Color>(Colors.transparent),
-        foregroundColor: _foreground(scheme.primaryActive),
-        overlayColor: _overlay(scheme.primaryActive),
+        backgroundColor: const WidgetStatePropertyAll<Color>(
+          Colors.transparent,
+        ),
+        foregroundColor: _dimWhenDisabled(scheme.primaryActive),
+        overlayColor: AurisStateLayers.overlay(scheme.primaryActive),
         elevation: const WidgetStatePropertyAll<double>(0),
-        shadowColor:
-            const WidgetStatePropertyAll<Color>(Colors.transparent),
-        surfaceTintColor:
-            const WidgetStatePropertyAll<Color>(Colors.transparent),
+        shadowColor: const WidgetStatePropertyAll<Color>(Colors.transparent),
+        surfaceTintColor: const WidgetStatePropertyAll<Color>(
+          Colors.transparent,
+        ),
         splashFactory: NoSplash.splashFactory,
         padding: const WidgetStatePropertyAll<EdgeInsets>(_padding),
         shape: WidgetStatePropertyAll<OutlinedBorder>(_bevel(scheme)),
@@ -221,16 +198,17 @@ abstract final class AurisButtonThemes {
   static IconButtonThemeData icon(AurisScheme scheme) {
     return IconButtonThemeData(
       style: ButtonStyle(
-        foregroundColor: _foreground(scheme.primaryActive),
-        iconColor: _foreground(scheme.primaryActive),
-        overlayColor: _overlay(scheme.primaryActive),
-        backgroundColor:
-            const WidgetStatePropertyAll<Color>(Colors.transparent),
+        foregroundColor: _dimWhenDisabled(scheme.primaryActive),
+        iconColor: _dimWhenDisabled(scheme.primaryActive),
+        overlayColor: AurisStateLayers.overlay(scheme.primaryActive),
+        backgroundColor: const WidgetStatePropertyAll<Color>(
+          Colors.transparent,
+        ),
         elevation: const WidgetStatePropertyAll<double>(0),
-        shadowColor:
-            const WidgetStatePropertyAll<Color>(Colors.transparent),
-        surfaceTintColor:
-            const WidgetStatePropertyAll<Color>(Colors.transparent),
+        shadowColor: const WidgetStatePropertyAll<Color>(Colors.transparent),
+        surfaceTintColor: const WidgetStatePropertyAll<Color>(
+          Colors.transparent,
+        ),
         splashFactory: NoSplash.splashFactory,
         shape: WidgetStatePropertyAll<OutlinedBorder>(_bevel(scheme)),
       ),
@@ -280,8 +258,9 @@ abstract final class AurisButtonThemes {
     return ToggleButtonsThemeData(
       borderColor: scheme.borderBright,
       selectedBorderColor: scheme.primaryActive,
-      disabledBorderColor:
-          scheme.borderResting.withValues(alpha: _disabledOpacity),
+      disabledBorderColor: scheme.borderResting.withValues(
+        alpha: _disabledOpacity,
+      ),
       color: scheme.primaryActive,
       selectedColor: scheme.primaryActive,
       disabledColor: scheme.primaryActive.withValues(alpha: _disabledOpacity),
@@ -308,33 +287,34 @@ abstract final class AurisButtonThemes {
     return SegmentedButtonThemeData(
       selectedIcon: Icon(Icons.check, color: scheme.onPrimary, size: 18),
       style: ButtonStyle(
-        backgroundColor: WidgetStateProperty.resolveWith<Color?>(
-          (Set<WidgetState> states) {
-            if (states.contains(WidgetState.disabled)) {
-              return scheme.surfaceInset.withValues(alpha: _disabledOpacity);
-            }
-            if (states.contains(WidgetState.selected)) {
-              return scheme.primaryActive;
-            }
-            return scheme.surfaceInset;
-          },
-        ),
-        foregroundColor: WidgetStateProperty.resolveWith<Color?>(
-          (Set<WidgetState> states) {
-            if (states.contains(WidgetState.disabled)) {
-              return scheme.primaryActive.withValues(alpha: _disabledOpacity);
-            }
-            if (states.contains(WidgetState.selected)) {
-              return scheme.onPrimary;
-            }
+        backgroundColor: WidgetStateProperty.resolveWith<Color?>((
+          Set<WidgetState> states,
+        ) {
+          if (states.contains(WidgetState.disabled)) {
+            return scheme.surfaceInset.withValues(alpha: _disabledOpacity);
+          }
+          if (states.contains(WidgetState.selected)) {
             return scheme.primaryActive;
-          },
-        ),
-        overlayColor: _overlay(scheme.primaryActive),
+          }
+          return scheme.surfaceInset;
+        }),
+        foregroundColor: WidgetStateProperty.resolveWith<Color?>((
+          Set<WidgetState> states,
+        ) {
+          if (states.contains(WidgetState.disabled)) {
+            return scheme.primaryActive.withValues(alpha: _disabledOpacity);
+          }
+          if (states.contains(WidgetState.selected)) {
+            return scheme.onPrimary;
+          }
+          return scheme.primaryActive;
+        }),
+        overlayColor: AurisStateLayers.overlay(scheme.primaryActive),
         side: _side(scheme),
         elevation: const WidgetStatePropertyAll<double>(0),
-        surfaceTintColor:
-            const WidgetStatePropertyAll<Color>(Colors.transparent),
+        surfaceTintColor: const WidgetStatePropertyAll<Color>(
+          Colors.transparent,
+        ),
         splashFactory: NoSplash.splashFactory,
         shape: WidgetStatePropertyAll<OutlinedBorder>(_bevel(scheme)),
         textStyle: const WidgetStatePropertyAll<TextStyle>(_labelStyle),
